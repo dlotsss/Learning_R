@@ -92,11 +92,11 @@ plot(cylinders, mpg, col ="red", varwidth =T, xlab="cylinders ",
 
 hist(mpg, col=2, breaks=10) #this draws histogram, col=2 is the same as col="red" and breaks are like how many of it is between each value 
 
-pairs(Auto)
 pairs(~mpg + displacement + horsepower + weight + acceleration, Auto) #this creates like 25 scatterplots for 2 of the variables inside the data set
 
-plot(horsepower, mpg)s
+plot(horsepower, mpg)
 identify(horsepower, mpg, name) #this should identify the numbers of rows of selected points at plot
 
-summary(Auto) #it should give the numerical summary (mig, 1st qu, median, mean, 3rd qu, max)
+summary(Auto) #it gives the numerical summary (mig, 1st qu, median, mean, 3rd qu, max)
 
+q() #quit 
