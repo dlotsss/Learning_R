@@ -1,0 +1,65 @@
+---
+title: "Assignment1"
+output: html_document
+date: "2025-06-18"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+a) 
+```{r}
+College = read.csv("~/Downloads/algoritmika/python pro 1 year/Дасаева София PP/Learning_R/Stanford/College.csv")
+```
+
+b) 
+```{r}
+rownames(College) = College[,1]
+College= College[,-1] 
+```
+by doing so we were able to make the name of university as the column and delete the name of university from actual data 
+c) 
+
+```{r}
+summary(College)
+```
+```{r}
+pairs(College[,2:11])
+```
+```{r}
+attach(College)
+Private = as.factor(Private)
+plot(Private, Outstate,
+     col      = "green",
+     varwidth = TRUE,
+     xlab     = "Private?",
+     ylab     = "Out-of-state Tuition")
+```
+
+```{r}
+attach(College)
+Elite = rep("No", nrow(College))
+Elite[Top10perc>50]="Yes"
+Elite=as.factor(Elite)
+College = data.frame(College, Elite)
+summary(Elite)
+
+```
+data.frame creates data frames, tightly coupled collections of variables which share many of the properties of matrices and of lists, used as the fundamental data structure by most of R's modeling software.
+```{r}
+plot(Elite, Outstate,
+     col      = "red",
+     varwidth = TRUE,
+     xlab     = "Elite?",
+     ylab     = "Out-of-state Tuition")
+```
+```{r}
+par(mfrow = c(2,2), mar = c(4,4,2,1))
+hist(College$Apps,      breaks = 30, col = "lightblue", main = "Apps")
+hist(College$Accept,    breaks = 30, col = "lightblue", main = "Accept")
+hist(College$Enroll,    breaks = 30, col = "lightblue", main = "Enroll")
+hist(College$Outstate,  breaks = 30, col = "lightblue", main = "Out-of-State Tuition")
+par(mfrow = c(1,1))
+```
+The histograms for Apps, Accept, and Enroll are all heavily right-skewed: most colleges receive fewer than 5 000 applications, admit under 3 000 students, and enroll under 2 000, while a handful of large universities form a long tail of very high values. In comparison, Out-of-State Tuition is much more symmetrically distributed—most tuitions cluster between $8 000 and $15 000, with relatively few extreme outliers.
+
