@@ -75,11 +75,28 @@ dim(A) #outputs the number of rows and columns of given matrix
 
 #LOADING DATA
 Auto = read.table("~/Downloads/algoritmika/python pro 1 year/Дасаева София PP/Learning_R/Stanford/Auto.data", header=T, na.strings="?") #means that this data sets has headers and that ? indicate missing values
-fix(Auto)
 #if its csv file, we might use read.csv()
 
 Auto = na.omit(Auto) #because there are only 5 missing values, we can just remove those 
 names(Auto) #tells the variables names 
 
+#ADDITIONAL GRAPHICAL AND NUMERICAL SUMMARIES 
+plot(Auto$cylinders, Auto$mpg) #we should use $ if we want to plot data from the table
+#or 
+attach(Auto)
+plot(cylinders, mpg)
+ 
+cylinders = as.factor(cylinders) #this makes quantitative data to qualitative 
+plot(cylinders, mpg, col ="red", varwidth =T, xlab="cylinders ",
+     ylab="MPG") #this is like a boxplots 
 
+hist(mpg, col=2, breaks=10) #this draws histogram, col=2 is the same as col="red" and breaks are like how many of it is between each value 
+
+pairs(Auto)
+pairs(~mpg + displacement + horsepower + weight + acceleration, Auto) #this creates like 25 scatterplots for 2 of the variables inside the data set
+
+plot(horsepower, mpg)s
+identify(horsepower, mpg, name) #this should identify the numbers of rows of selected points at plot
+
+summary(Auto) #it should give the numerical summary (mig, 1st qu, median, mean, 3rd qu, max)
 
