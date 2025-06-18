@@ -73,10 +73,13 @@ A[1:2,] #take rows 1 to 2 and every column
 A[-c(1,3),] #keep everything except those indicated in the index because of - sign
 dim(A) #outputs the number of rows and columns of given matrix 
 
+#LOADING DATA
+Auto = read.table("~/Downloads/algoritmika/python pro 1 year/Дасаева София PP/Learning_R/Stanford/Auto.data", header=T, na.strings="?") #means that this data sets has headers and that ? indicate missing values
+fix(Auto)
+#if its csv file, we might use read.csv()
 
-
-
-
+Auto = na.omit(Auto) #because there are only 5 missing values, we can just remove those 
+names(Auto) #tells the variables names 
 
 
 
