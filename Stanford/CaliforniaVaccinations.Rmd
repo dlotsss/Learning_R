@@ -1,0 +1,49 @@
+---
+title: "California Vaccinations"
+author: "V D'Urso"
+date: "7/16/2021"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    social: menu
+    source_code: embed
+runtime: shiny
+---
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(shiny)
+```
+
+```{r global, include=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+library(ggplot2)
+library(mgcv)
+library(curl)
+library(data.table)
+cavax <- fread('https://raw.githubusercontent.com/datadesk/california-coronavirus-data/master/cdph-vaccination-zipcode-totals.csv')
+cavax <- cavax[,-(2:5)]
+
+```
+
+Inputs {.sidebar}
+-------------------------------------
+
+```{r, echo=FALSE}
+
+selectInput('y', 'Y Axis', names(cavax), names(cavax)[[5]])
+```
+
+Outputs
+-------------------------------------
+
+### California Vaccinations
+
+```{r , echo=FALSE}
+
+renderPlot({
+  ggplot(cavax, aes_string(x=cavax$date, y=input$y)) + 
+    geom_smooth(se=F)
+})
+```
+
+

@@ -1,0 +1,10 @@
+name: stanford
+title:
+username: sofiya
+account: sofiya
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14951374
+bundleId: 10473482
+url: https://sofiya.shinyapps.io/stanford/
+version: 1
