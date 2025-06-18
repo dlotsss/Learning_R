@@ -62,6 +62,19 @@ contour(i, j, k,
         ylab = "j axis",
         main = "Contour of cos(i)*sin(j)")
 image(i, j, k) #produces heatmap 
+persp(i, j, k, theta =30, phi=70 ) #produces 3dimensional plot and theta and phi help control the angles through which the plot is viewed 
+
+#INDEXING DATA
+A = matrix(1:16, 4, 4)
+A[2,3] #this works just as usual matrix, it shows 2nd row and 3rd column
+A[c(1,3), c(2,4)] #it is like 1;2, 1;4, and 3;2, 3;4
+A[1:3,2:4] #1;2, 2;2, 3;2 and so on 
+A[1:2,] #take rows 1 to 2 and every column 
+A[-c(1,3),] #keep everything except those indicated in the index because of - sign
+dim(A) #outputs the number of rows and columns of given matrix 
+
+
+
 
 
 
