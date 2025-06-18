@@ -143,12 +143,74 @@ par(mfrow = c(1,1))
 
 4) there’s a modest upward trend—newer models (higher model year) tend to achieve slightly better MPG than older ones.
 
+```{r}
+correlations <- cor(Auto[ , c("mpg", quantitative)])
+round(correlations["mpg", ], 2)
+```
+the best are displacement, weight, horsepower; year (0.58) would be good additional, there's slight positive correlation with acceleration (0.42) which we can also use.  cylinders, origin are qualitative 
+
+EXERCISE 10
+```{r}
+library(MASS)
+Boston
+dim(Boston)
+```
+there are 506 rows and 14 columns 
+
+```{r}
+pairs(Boston,
+      panel = panel.smooth,
+      main  = "Scatterplot Matrix of Predictors")
+```
+a lot of information 
+
+```{r}
+cors <- cor(Boston)
+crime_corrs <- sort(cors["crim", ], decreasing = TRUE)
+round(crime_corrs, 2)
+```
+rad and tax mostly 
+
+```{r}
+top_crime <- Boston[order(-Boston$crim), "crim"][1:5]
+top_tax   <- Boston[order(-Boston$tax),   "tax"][1:5]
+top_ptr   <- Boston[order(-Boston$ptratio),"ptratio"][1:5]
+
+top_crime
+top_tax
+top_ptr
+```
+
+```{r}
+ranges <- sapply(Boston, range, na.rm = TRUE)
+ranges 
+```
+
+```{r}
+n_chas <- sum(Boston$chas == 1)
+n_chas
+```
+```{r}
+med_ptr <- median(Boston$ptratio)
+med_ptr
+```
+```{r}
+idx_minmedv <- which.min(Boston$medv)
+sub_minmedv <- Boston[idx_minmedv, ]
+sub_minmedv
+```
+the suburb's values are up there. Ranges are a little higher. It is an outlier on multiple fronts
+
+```{r}
+n_gt7 <- sum(Boston$rm > 7)
+n_gt8 <- sum(Boston$rm > 8)
+ n_gt7
+ n_gt8
+```
 
 
+64 suburbs average more than seven rooms per dwelling.
 
-
-
-
-
+13 suburbs average more than eight rooms.
 
 
