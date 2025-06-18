@@ -41,4 +41,29 @@ dev.off() #indicates that we are done with creating the plot
 f = seq(1, 10) #makes sequence of integers from 1 to 10 OR just write f=1:10
 g = seq(1, 2, length=10) #makes a sequence of 10 numbers that are equally spaced between 0 and 1
 
+h = outer(x,y,function (x,y)cos(y)/(1+x^2))
+contour(x,y,h) #more sophisticated graphs
+
+# 1) Define grid
+i <- seq(-pi, pi, length = 50)
+j <- seq(-pi, pi, length = 50)
+
+# 2) Compute heights: e.g. z = cos(x)*sin(y)
+k <- outer(j, i, function(j, i) cos(i) * sin(j)) #this returns a matrix where values are products of cosi*sinj
+#     note: outer rows correspond to j, columns to i
+
+# 3) Plot contours
+contour(i, j, k,
+        levels = seq(-1, 1, by = 0.2),
+        drawlabels = TRUE,
+        col = "blue",
+        lwd = 2,
+        xlab = "I axis",
+        ylab = "j axis",
+        main = "Contour of cos(i)*sin(j)")
+image(i, j, k) #produces heatmap 
+
+
+
+
 
