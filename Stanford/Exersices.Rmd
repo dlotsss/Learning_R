@@ -63,3 +63,92 @@ par(mfrow = c(1,1))
 ```
 The histograms for Apps, Accept, and Enroll are all heavily right-skewed: most colleges receive fewer than 5 000 applications, admit under 3 000 students, and enroll under 2 000, while a handful of large universities form a long tail of very high values. In comparison, Out-of-State Tuition is much more symmetrically distributed—most tuitions cluster between $8 000 and $15 000, with relatively few extreme outliers.
 
+
+EXERCISE 9 
+```{r}
+Auto = read.table("~/Downloads/algoritmika/python pro 1 year/Дасаева София PP/Learning_R/Stanford/Auto.data", header=T, na.strings="?") #means that this data sets has headers and that ? indicate missing values
+#if its csv file, we might use read.csv()
+
+Auto = na.omit(Auto)
+```
+
+1) 
+```{r}
+cylinders = as.factor(cylinders)
+
+# numeric columns
+quantitative <- names(Auto)[ sapply(Auto, is.numeric) ]
+
+# factor/character columns
+qualitative  <- names(Auto)[ sapply(Auto, function(x) is.factor(x) || is.character(x)) ]
+
+quantitative
+qualitative
+
+```
+```{r}
+ranges <- sapply(Auto[, quantitative], range, na.rm = TRUE)
+ranges
+```
+```{r}
+means <- sapply(Auto[ , quantitative], mean, na.rm = TRUE)
+means
+```
+
+```{r}
+sds   <- sapply(Auto[ , quantitative], sd,   na.rm = TRUE)
+sds
+```
+```{r}
+NewAuto = Auto[-(10:85), ]
+Newranges <- sapply(NewAuto[ , quantitative], range, na.rm = TRUE)
+Newmeans  <- sapply(NewAuto[ , quantitative], mean,  na.rm = TRUE)
+Newsds    <- sapply(NewAuto[ , quantitative], sd,    na.rm = TRUE)
+
+Newranges
+
+Newmeans
+
+Newsds
+```
+```{r}
+pairs(Auto[ , quantitative],
+      panel = panel.smooth,
+      main  = "Scatterplot Matrix of Quantitative Predictors")
+
+```
+from these we can make more research 
+
+```{r}
+par(mfrow = c(2,2), mar = c(4,4,2,1))
+plot(Auto$horsepower, Auto$mpg,
+     xlab = "Horsepower", ylab = "MPG",
+     main = "MPG vs Horsepower")
+plot(Auto$weight,     Auto$mpg,
+     xlab = "Weight",     ylab = "MPG",
+     main = "MPG vs Weight")
+plot(Auto$displacement, Auto$mpg,
+     xlab = "Displacement", ylab = "MPG",
+     main = "MPG vs Displacement")
+plot(Auto$year, Auto$mpg,
+     xlab = "Model Year",  ylab = "MPG",
+     main = "MPG vs Year")
+par(mfrow = c(1,1))
+```
+1) there’s a clear, almost linear downward trend—cars with more horsepower almost always get lower MPG.
+
+2)  heavier vehicles consistently show lower fuel economy, with the steepest drop in MPG between about 2 000 lb and 3 000 lb.
+
+3) larger engine displacements correspond to lower MPG in a similar fashion to horsepower, confirming that engine size is a strong negative predictor of fuel efficiency.
+
+4) there’s a modest upward trend—newer models (higher model year) tend to achieve slightly better MPG than older ones.
+
+
+
+
+
+
+
+
+
+
