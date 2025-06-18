@@ -1,32 +1,12 @@
----
-title: "Assignment1"
-output: html_document
-date: "2025-06-18"
----
-
-```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-a) 
-```{r}
-College = read.csv("~/Downloads/algoritmika/python pro 1 year/Дасаева София PP/Learning_R/Stanford/College.csv")
-```
 
-b) 
-```{r}
+College = read.csv("~/Downloads/algoritmika/python pro 1 year/Дасаева София PP/Learning_R/Stanford/College.csv")
+
 rownames(College) = College[,1]
 College= College[,-1] 
-```
-by doing so we were able to make the name of university as the column and delete the name of university from actual data 
-c) 
 
-```{r}
 summary(College)
-```
-```{r}
 pairs(College[,2:11])
-```
-```{r}
 attach(College)
 Private = as.factor(Private)
 plot(Private, Outstate,
@@ -34,9 +14,7 @@ plot(Private, Outstate,
      varwidth = TRUE,
      xlab     = "Private?",
      ylab     = "Out-of-state Tuition")
-```
 
-```{r}
 attach(College)
 Elite = rep("No", nrow(College))
 Elite[Top10perc>50]="Yes"
@@ -44,36 +22,25 @@ Elite=as.factor(Elite)
 College = data.frame(College, Elite)
 summary(Elite)
 
-```
-data.frame creates data frames, tightly coupled collections of variables which share many of the properties of matrices and of lists, used as the fundamental data structure by most of R's modeling software.
-```{r}
+
 plot(Elite, Outstate,
      col      = "red",
      varwidth = TRUE,
      xlab     = "Elite?",
      ylab     = "Out-of-state Tuition")
-```
-```{r}
 par(mfrow = c(2,2), mar = c(4,4,2,1))
 hist(College$Apps,      breaks = 30, col = "lightblue", main = "Apps")
 hist(College$Accept,    breaks = 30, col = "lightblue", main = "Accept")
 hist(College$Enroll,    breaks = 30, col = "lightblue", main = "Enroll")
 hist(College$Outstate,  breaks = 30, col = "lightblue", main = "Out-of-State Tuition")
 par(mfrow = c(1,1))
-```
-The histograms for Apps, Accept, and Enroll are all heavily right-skewed: most colleges receive fewer than 5 000 applications, admit under 3 000 students, and enroll under 2 000, while a handful of large universities form a long tail of very high values. In comparison, Out-of-State Tuition is much more symmetrically distributed—most tuitions cluster between $8 000 and $15 000, with relatively few extreme outliers.
 
-
-EXERCISE 9 
-```{r}
 Auto = read.table("~/Downloads/algoritmika/python pro 1 year/Дасаева София PP/Learning_R/Stanford/Auto.data", header=T, na.strings="?") #means that this data sets has headers and that ? indicate missing values
 #if its csv file, we might use read.csv()
 
 Auto = na.omit(Auto)
-```
 
-1) 
-```{r}
+cylinders = as.factor(cylinders)
 
 # numeric columns
 quantitative <- names(Auto)[ sapply(Auto, is.numeric) ]
@@ -84,21 +51,13 @@ qualitative  <- names(Auto)[ sapply(Auto, function(x) is.factor(x) || is.charact
 quantitative
 qualitative
 
-```
-```{r}
 ranges <- sapply(Auto[, quantitative], range, na.rm = TRUE)
 ranges
-```
-```{r}
 means <- sapply(Auto[ , quantitative], mean, na.rm = TRUE)
 means
-```
 
-```{r}
 sds   <- sapply(Auto[ , quantitative], sd,   na.rm = TRUE)
 sds
-```
-```{r}
 NewAuto = Auto[-(10:85), ]
 Newranges <- sapply(NewAuto[ , quantitative], range, na.rm = TRUE)
 Newmeans  <- sapply(NewAuto[ , quantitative], mean,  na.rm = TRUE)
@@ -109,16 +68,11 @@ Newranges
 Newmeans
 
 Newsds
-```
-```{r}
 pairs(Auto[ , quantitative],
       panel = panel.smooth,
       main  = "Scatterplot Matrix of Quantitative Predictors")
 
-```
-from these we can make more research 
 
-```{r}
 par(mfrow = c(2,2), mar = c(4,4,2,1))
 plot(Auto$horsepower, Auto$mpg,
      xlab = "Horsepower", ylab = "MPG",
@@ -133,44 +87,22 @@ plot(Auto$year, Auto$mpg,
      xlab = "Model Year",  ylab = "MPG",
      main = "MPG vs Year")
 par(mfrow = c(1,1))
-```
-1) there’s a clear, almost linear downward trend—cars with more horsepower almost always get lower MPG.
 
-2)  heavier vehicles consistently show lower fuel economy, with the steepest drop in MPG between about 2 000 lb and 3 000 lb.
-
-3) larger engine displacements correspond to lower MPG in a similar fashion to horsepower, confirming that engine size is a strong negative predictor of fuel efficiency.
-
-4) there’s a modest upward trend—newer models (higher model year) tend to achieve slightly better MPG than older ones.
-
-```{r}
 correlations <- cor(Auto[ , c("mpg", quantitative)])
 round(correlations["mpg", ], 2)
-```
-the best are displacement, weight, horsepower; year (0.58) would be good additional, there's slight positive correlation with acceleration (0.42) which we can also use.  cylinders, origin are qualitative 
 
-EXERCISE 10
-```{r}
 library(MASS)
 Boston
 dim(Boston)
-```
-there are 506 rows and 14 columns 
 
-```{r}
 pairs(Boston,
       panel = panel.smooth,
       main  = "Scatterplot Matrix of Predictors")
-```
-a lot of information 
 
-```{r}
 cors <- cor(Boston)
 crime_corrs <- sort(cors["crim", ], decreasing = TRUE)
 round(crime_corrs, 2)
-```
-rad and tax mostly 
 
-```{r}
 top_crime <- Boston[order(-Boston$crim), "crim"][1:5]
 top_tax   <- Boston[order(-Boston$tax),   "tax"][1:5]
 top_ptr   <- Boston[order(-Boston$ptratio),"ptratio"][1:5]
@@ -178,38 +110,19 @@ top_ptr   <- Boston[order(-Boston$ptratio),"ptratio"][1:5]
 top_crime
 top_tax
 top_ptr
-```
 
-```{r}
 ranges <- sapply(Boston, range, na.rm = TRUE)
 ranges 
-```
 
-```{r}
 n_chas <- sum(Boston$chas == 1)
 n_chas
-```
-```{r}
 med_ptr <- median(Boston$ptratio)
 med_ptr
-```
-```{r}
 idx_minmedv <- which.min(Boston$medv)
 sub_minmedv <- Boston[idx_minmedv, ]
 sub_minmedv
-```
-the suburb's values are up there. Ranges are a little higher. It is an outlier on multiple fronts
 
-```{r}
 n_gt7 <- sum(Boston$rm > 7)
 n_gt8 <- sum(Boston$rm > 8)
  n_gt7
  n_gt8
-```
-
-
-64 suburbs average more than seven rooms per dwelling.
-
-13 suburbs average more than eight rooms.
-
-
