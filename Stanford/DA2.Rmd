@@ -1,0 +1,121 @@
+---
+title: "DailyAssignment2"
+output:
+  pdf_document: default
+  html_document: default
+date: "2025-06-19"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+R for DS 3.2.4 
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, alpha = class), color = "blue", shape = 2)
+```
+here in data we give the data set - we create empty graph by doing so 
+then we add next layers: 
+geom_point() adds a layer of points which is scatterplot 
+mapping argument inside geom_point with aes(x = , y =) to indicate which data piece is for which axis. 
+Inside the aes: 
+- color = class is adding the third variable to give more context to understand the outliers. It turned out that those outliers are 2seaters (mostly sports cars) so they have bigger engines 
+- we also can make them look different by size = year, however it should be used only for ordered things (like years), still sometimes it is not convinient - it can also be alpha = class (which will make different transperency of one color) 
+- it can be shape = class (which will make points, triangles, squares and etc) BUT only first 6 shapes will be plotted 
+
+We can give our own color inside the geom_point() after aes() - color="blue", 
+our own size in mm and our own shape of a point as a number from 0 to 25
+
+
+1) 
+```{r}
+ggplot(data = mpg)
+```
+it is just empty, blank page without graph or axis 
+
+2) 
+```{r}
+dim(mpg)
+```
+this means that there are 234 rows and 11 columns 
+
+3) 
+```{r}
+?mpg
+```
+the type of drive train, where f = front-wheel drive, r = rear wheel drive, 4 = 4wd
+
+4) 
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = hwy, y = cyl))
+```
+
+5) 
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = class, y = drv))
+```
+this is not useful because class in qualitative variable. 
+Also, the dots are just everywhere, so there's no correlation at all. 
+
+
+3.3.1 Exercises
+1) 
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = "blue"))
+```
+this is not working right because when we want manually to make the color blue, we should do so outside of the aes(). If we do it inside the aes, it thinks that this is a third variable which will effect the plot and it writes legend for that. 
+
+Actually it should be like this: 
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy), color = "blue")
+```
+In this scatterplot the points are blue 
+
+2) 
+```{r}
+?mpg
+```
+Categorical: manufacturer, model (model name), trans (type of transmission), drv (the type of drive train), fl (fuel type), class ("type" of car), year (year of manufacture)
+Continuous: displ (engine displacement, in litres), cyl (number of cylinders), cty (city miles per gallon), hwy (highway miles per gallon)
+However, still those cty, cyl, hwy have several same values, so they could also be catogorical like 
+
+
+3) 
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = cty, y = hwy, size = displ))
+```
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = cty, y = hwy, alpha = year))
+```
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = cty, y = hwy, color = model))
+```
+so basically when it's continuous value, in the legend the number appears. When it's cateorical, it is the text that appears. 
+
+4) 
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, alpha = class, size = class, color = class))
+```
+so here the class is classification by color, transparency level and size, but looking at everything all at once is not convinient. 
+
+5) 
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, stroke = 0.1))
+```
+stroke also about the size of the dots 
+
+6)
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = cty, y = hwy, color = displ < 5))
+```
+here it shows which apply to the given condition and which don't
