@@ -1,0 +1,249 @@
+---
+title: "Logistic Regression"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Logistic Regression
+
+## Set Up
+
+```{r pressure, echo=FALSE}
+#import libraries
+library(dplyr)
+library(ggplot2)
+library(repr) 
+# Set the parameters for the plot sizes for all plots below
+options(repr.plot.width=4, repr.plot.height=4)
+```
+```{r}
+Pulse <- read.csv("~/IntroDataScience/R/D4/Data/Pulse.csv")
+attach(Pulse)
+```
+
+## Exploring the Data
+```{r}
+summary(Pulse[,"Hgt"])
+summary(Gender)
+```
+## Linear Model for predicting Gender based on Hgt
+```{r}
+gender.lm<-lm(Gender ~ Hgt)
+summary(gender.lm)
+```
+```{r}
+options(repr.plot.width=4, repr.plot.height=4)
+plot(Gender~Hgt)
+  abline(gender.lm)
+```
+```{r}
+# To see more of the data points that fall on top of each other jitter them!
+plot(Hgt, jitter(Gender, amount = 0.05))
+  abline(gender.lm)
+```
+## Another Example Predicting Golf Putts Made
+```{r}
+PropMade=c(84/101,88/119,61/108,61/125,44/134)
+PuttLength=c(3,4,5,6,7)
+```
+```{r}
+odds=PropMade/(1-PropMade)
+odds
+4.941/0.488
+```
+## Logistic Regression Model
+```{r}
+table(Gender,Hgt)
+```
+```{r}
+a <- table(Gender,Hgt)
+b <- apply(a,2,sum) # find the column sums of the table
+tab <- rbind(a,b) # add sums at the bottom of each column
+tab
+```
+```{r}
+gender.glm <- glm(Gender ~ Hgt, family = binomial)
+summary(gender.glm)
+```
+```{r}
+b0 <- coef(gender.glm)[1]
+b1 <- coef(gender.glm)[2]
+plot(Hgt, jitter(Gender, amount = 0.05))
+  curve(exp(b0+b1*x)/(1+exp(b0+b1*x)),add=TRUE)
+```
+
+```{r}
+#confidence interval for the betas
+confint(gender.glm)
+# exponentiation gives CI for the odds ratio
+exp(confint(gender.glm))
+```
+## Multiple Logistic regression
+Predict Survival in thte ICU based on Age, SysBP, and Pulse.
+
+```{r}
+detach(Pulse)
+ICU <- read.csv("~/IntroDataScience/R/D4/Data/ICU.csv")
+attach(ICU)
+```
+```{r}
+model=glm(Survive~Age+SysBP+ICU$Pulse, family=binomial) 
+# specify ICU$Pulse or R gets confused about which pulse variable
+summary(model)
+```
+Examine the regressors one at a time.
+
+```{r}
+# Quick Boxplots
+options(repr.plot.width=12, repr.plot.height=4)
+
+par(mfrow=c(1,3)) # to combine all plots in one grid with c(nrows, ncols)
+boxplot(Age~Survive, xlab="Survive", ylab="Age")
+boxplot(SysBP~Survive, xlab="Survive", ylab="SysBP")
+boxplot(ICU$Pulse~Survive, xlab="Survive", ylab="Pulse")
+```
+## Better Boxplots
+```{r}
+# Functionalize the plot we want
+binaryboxplot <- function(data, xlab=NULL, ylab=NULL){
+    # A fancier boxplot 
+    # Inputs: A data frame data, 
+    #         xlab to be used as group
+    #         ylab to be used as regressor
+    # Output: A boxplot with data points
+    
+    #data[xlab] makes a list 
+    #so we need to extract just the values as a vector with unlist()  
+    group <- unlist(data[xlab]) 
+    regressor <- unlist(data[ylab])
+
+    options(repr.plot.width=7, repr.plot.height=3)
+    ggplot(data, aes(x=group, y=regressor, group=group)) + 
+      geom_boxplot(outlier.colour="red") +
+      geom_jitter(width=0.1) +
+      coord_flip() +
+      xlab(xlab) + ylab(ylab)
+}
+
+binaryboxplot(ICU, "Survive", "Age")
+binaryboxplot(ICU, "Survive", "SysBP")
+binaryboxplot(ICU, "Survive", "Pulse")    
+```
+## Model with Age only
+```{r}
+m1 <- glm(Survive~Age, family=binomial) 
+
+options(repr.plot.width=4, repr.plot.height=4)
+plot(jitter(Survive,amount=.03)~Age)
+  curve(exp(m1$coefficient[1]+m1$coefficient[2]*x)/
+        (1+exp(m1$coefficient[1]+m1$coefficient[2]*x)), add=TRUE)
+```
+## Model with SysBP only
+```{r}
+m2 <- glm(Survive~SysBP, family=binomial) 
+
+options(repr.plot.width=4, repr.plot.height=4)
+plot(jitter(Survive,amount=.03)~SysBP)
+  curve(exp(m2$coefficient[1]+m2$coefficient[2]*x)/
+        (1+exp(m2$coefficient[1]+m2$coefficient[2]*x)), add=TRUE)
+```
+## Model with Pulse only
+```{r}
+m3 <- glm(Survive~ICU$Pulse, family=binomial) 
+
+options(repr.plot.width=4, repr.plot.height=4)
+plot(jitter(Survive,amount=.03)~ICU$Pulse)
+  curve(exp(m3$coefficient[1]+m3$coefficient[2]*x)/
+        (1+exp(m3$coefficient[1]+m3$coefficient[2]*x)), add=TRUE)
+```
+## G-test for Overall Fit
+```{r}
+m1=glm(Survive~Age+SysBP+ICU$Pulse, family=binomial)
+summary(m1)
+anova(m1)
+```
+## Better G-test Code
+Now we can get really fancy and write a function to do the G test
+```{r}
+# G - test function, so we only write the code for the test once
+Gtest <- function(model) {
+  # 
+  # Inputs: Null Devance, Residual Deviance, Null df, Residual df
+  # Outputs: G test statistic, DF, and P-value 
+  # ToDO: Add test for to check if the model approproate for a G test!
+ 
+  if((summary(model)$family[1] == "binomial")) {
+    n <- length(anova(model)[,1])
+    null.deviance <- anova(model)[1,4]    
+    residual.deviance <- anova(model)[n,4]   
+    null.df <- anova(model)[1,3]
+    residual.df <- anova(model)[n,3]
+    
+    G <- null.deviance - residual.deviance
+    df <- null.df - residual.df
+    p <- pchisq(G, df, lower.tail=F)
+    
+    cat("G =", G, "DF =", df, "P-value =", p)
+      
+    } else {
+  stop("This is not a logistic model!")  
+  }  
+}    
+
+Gtest(m1)
+m.bad <- glm(formula = Survive ~ Age + SysBP + ICU$Pulse, family = "poisson")
+# try: Gtest(m.bad)
+```
+## Nested G test
+Test the overall goodness of the model as we sequentially add predictors.
+```{r}
+m.full <- glm(Survive ~ SysBP + Sex + I(Sex*SysBP), family = "binomial")
+summary(m.full)
+Gtest(m.full)
+```
+```{r}
+anova(m.full)
+```
+## Plot of fit for male vs female
+```{r}
+m2<-glm(Survive ~ SysBP + Sex + I(SysBP*Sex), family=binomial) 
+options(repr.plot.width=8, repr.plot.height=8.5)
+plot(Survive~SysBP,type="n") #null graph
+points(jitter(Survive,amount=.03)[Sex==1]~SysBP[Sex==1],col="red") 
+#female points are red
+points(jitter(Survive,amount=.03)[Sex==0]~SysBP[Sex==0],col="blue") 
+#male points are blue 
+curve(exp(m2$coefficient[1]+m2$coefficient[2]*x)/
+      (1+exp(m2$coefficient[1]+m2$coefficient[2]*x)),add=TRUE,col="blue")
+curve(exp(m2$coefficient[1]+m2$coefficient[3]+
+      (m2$coefficient[2]+m2$coefficient[4])*x)/
+      (1+exp(m2$coefficient[1]+m2$coefficient[3]+
+      (m2$coefficient[2]+m2$coefficient[4])*x)),add=TRUE,col="red")
+```
+## Plot of fit for infection vs no infection
+```{r}
+m3 <- glm(Survive ~ SysBP + Infection + I(SysBP*Infection), family=binomial) 
+options(repr.plot.width=8, repr.plot.height=8.5)
+plot(Survive~SysBP,type="n") #null graph
+points(jitter(Survive,amount=.03)[Infection==1]~SysBP[Infection==1],col="red") 
+#infection points are red
+points(jitter(Survive,amount=.03)[Infection==0]~SysBP[Infection==0],col="blue") 
+#non-infection points are blue 
+curve(exp(m3$coefficient[1]+m3$coefficient[2]*x)/
+      (1+exp(m3$coefficient[1]+m3$coefficient[2]*x)),add=TRUE,col="blue")
+curve(exp(m3$coefficient[1]+m3$coefficient[3]+
+      (m3$coefficient[2]+m3$coefficient[4])*x)/
+      (1+exp(m3$coefficient[1]+m3$coefficient[3]+
+      (m3$coefficient[2]+m3$coefficient[4])*x)),add=TRUE,col="red")
+```
+```{r}
+# Create a new, binary variable from a continuous one
+ICU1 <-ICU
+ICU1$DangerBP <- 0
+ICU1$DangerBP[ICU$SysBP>140] <- 1
+ICU1
+```
+
