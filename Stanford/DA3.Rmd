@@ -189,4 +189,12 @@ lm.fit1=lm(medv~.-age ,data=Boston )
 summary (lm.fit1)
 ```
 3.6.4 Interaction Terms
+```{r}
+summary (lm(medv~lstat*age ,data=Boston))
+```
+
+we see that this interaction is actually not helping, but we can find better interactions.
+```{r}
+summary (lm(medv~lstat*rm ,data=Boston))
+```
 
