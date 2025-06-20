@@ -41,9 +41,10 @@ e)
 ```{r}
 summary(lm(carseats$Sales ~ carseats$CompPrice + carseats$Income + carseats$Advertising + carseats$Price + carseats$ShelveLoc + carseats$Age))
 ```
-If we compare the Multiple R-squared and Adjusted R-squared from a and from e: 
+f) If we compare the Multiple R-squared and Adjusted R-squared from a and from e: 
 In a only 23.35-23.93 % of sales variance is explained by those predictors, but in e 86.97-87.2 % of sales variance is explained by predictors. The E model fits data better. 
 
+g) 
 ```{r}
 confint(lm(carseats$Sales ~ carseats$CompPrice + carseats$Income + carseats$Advertising + carseats$Price + carseats$ShelveLoc + carseats$Age), level = 0.95)
 ```
@@ -57,3 +58,39 @@ Good ShelveLoc will increase the sales by 4.536 - 5.135
 Medium ShelveLoc will increase the sales by 1.706-2.198 
 One increase of age will decrease the sales by 0.039-0.052
 
+g) 
+
+```{r}
+par(mfrow = c(2, 2))
+
+plot(lm(carseats$Sales ~ carseats$CompPrice + carseats$Income + carseats$Advertising + carseats$Price + carseats$ShelveLoc + carseats$Age))
+
+par(mfrow = c(1,1))
+```
+```{r}
+model_e   <- lm(Sales ~ CompPrice + Income + Advertising + Price + ShelveLoc + Age,
+                data = carseats)
+
+r_stud  <- rstudent(model_e)
+h       <- hatvalues(model_e)
+
+n <- nrow(carseats)
+p <- length(coef(model_e)) - 1
+
+outl_cut  <- 2            # |r_stud| > 2
+lev_cut   <- 2*(p+1)/n    # h > 2(p+1)/n
+
+flags <- which(
+  abs(r_stud) > outl_cut |
+  h           > lev_cut  
+)
+
+flags
+data.frame(
+  Obs       = flags,
+  Rstud     = r_stud[flags],
+  Leverage  = h[flags]
+)
+
+```
+from this we can see that there are some outliers and hatvalues.
