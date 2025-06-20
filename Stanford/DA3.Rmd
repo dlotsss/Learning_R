@@ -1,0 +1,19 @@
+---
+title: "DA3"
+output: html_document
+date: "2025-06-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+10) 
+```{r}
+carseats = read.csv("~/Downloads/Carseats.csv")
+summary(lm(carseats$Sales ~ carseats$Price + carseats$Urban + carseats$US))
+```
+According to these, if there was no effect of different predictors (Price was 0, Urban was No and US was No), the sales would be estimately 13 thousands. We can trust this because t value > 2 and Pr(>|t|) is too small for the estimate to change a lot
+Price has a statistically significant effect on the sales too. Every increase by 1 dollar in price leades to reduction in total sales on 0.054. We can trust this because t value > 2 and Pr(>|t|) is too small for the Price to change a lot
+Urban is not statistically significant, it probably has no effect on the sales because t value < 2 and Pr(>|t|) is quite big, so it might vary
+US is statistically significant because t value > 2 and Pr(>|t|) is too small for the estimate to change a lot. As it is linear regression, it is not really suitable for categorical variables, but the location in US improves sales by 1.2
