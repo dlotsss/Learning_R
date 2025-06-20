@@ -1,6 +1,9 @@
 ---
 title: "DA3"
-output: html_document
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
 date: "2025-06-20"
 ---
 

@@ -1,6 +1,8 @@
 ---
 title: "MA1"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 date: "2025-06-18"
 ---
 
