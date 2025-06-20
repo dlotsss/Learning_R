@@ -94,3 +94,78 @@ data.frame(
 
 ```
 from this we can see that there are some outliers and hatvalues.
+
+R LAB
+3.6.1
+```{r}
+library(MASS)
+library(ISLR)
+```
+3.6.2 
+```{r}
+names(Boston)
+
+attach(Boston)
+model = lm(medv~lstat)
+summary(model)
+```
+
+
+```{r}
+coef(model)
+```
+
+
+```{r}
+confint(model)
+```
+
+
+```{r}
+predict(model, data.frame(lstat=c(5, 10 ,15)),
+        interval ="confidence")
+```
+by default leve is 95%; The "predict" returns the three columns; 
+fit: the point estimate y
+lwr: lower bound of the 95% for the mean lstat.
+upr: upper bound of the 95%.
+
+```{r}
+predict(model, data.frame(lstat=c(5, 10 ,15)),
+        interval ="prediction")
+```
+by default level is 95%; The "predict" returns the three columns; 
+fit: the point estimate y
+lwr: lower bound of the 95% for the mean lstat.
+upr: upper bound of the 95%.
+
+So the mean at both "confidence" and at "prediction" is the same (~25), however range is different. 24.47 - 25.63 at confidence and 12.83-37.28 at prediction 
+
+```{r}
+plot(lstat ,medv ,pch = 20)
+abline(model, col ="red")
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(model)
+```
+
+```{r}
+plot(predict (model), residuals (model))
+```
+Residuals tend to be positive for smaller fitted values and negative for larger ones, so it is another evidence of non-linearity.
+
+More points on the right
+
+A few extreme points (>15) appear as outliers.
+
+```{r}
+plot(hatvalues (model))
+```
+points around 400 are extreme hat values which can influence the overall regression pattern. 
+
+```{r}
+which.max(hatvalues (model))
+```
+
