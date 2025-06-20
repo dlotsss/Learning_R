@@ -11,9 +11,37 @@ knitr::opts_chunk$set(echo = TRUE)
 10) 
 ```{r}
 carseats = read.csv("~/Downloads/Carseats.csv")
+contrasts(factor(carseats$Urban))
+contrasts(factor(carseats$US))
 summary(lm(carseats$Sales ~ carseats$Price + carseats$Urban + carseats$US))
 ```
+b) 
 According to these, if there was no effect of different predictors (Price was 0, Urban was No and US was No), the sales would be estimately 13 thousands. We can trust this because t value > 2 and Pr(>|t|) is too small for the estimate to change a lot
 Price has a statistically significant effect on the sales too. Every increase by 1 dollar in price leades to reduction in total sales on 0.054. We can trust this because t value > 2 and Pr(>|t|) is too small for the Price to change a lot
 Urban is not statistically significant, it probably has no effect on the sales because t value < 2 and Pr(>|t|) is quite big, so it might vary
 US is statistically significant because t value > 2 and Pr(>|t|) is too small for the estimate to change a lot. As it is linear regression, it is not really suitable for categorical variables, but the location in US improves sales by 1.2
+
+c) 
+Sales = A + B1*Price + B2*Urban + B3*US
+Sales =13.0435+(−0.05446)Price +(−0.02192)Urban +1.20057US 
+If Urban and US are 1 (those dummy variables R created), those are substracted/added 
+
+d) the Null Hypothesis is that there is no relationship between this predictor and the y. In order to reject/fail to reject those we need to do:
+```{r}
+contrasts(factor(carseats$ShelveLoc))
+summary(lm(carseats$Sales ~ ., data = carseats))
+```
+so from the results we have, we can make several conclusions: 
+those with a large t value (>2) are statistically significant, therefore for them we can reject the null hypothesis. 
+Predictors such as CompPrice, Income, Advertising, Price, ShelveLocGood, ShelveLocMedium and Age actully influence the overall Sales. 
+
+For other predictors (Population, Education, UrbanYes, USYes) we fail to reject the null hypothesis and we don't whether they do significantly affect the sales. 
+
+e) 
+```{r}
+summary(lm(carseats$Sales ~ carseats$CompPrice + carseats$Income + carseats$Advertising + carseats$Price + carseats$ShelveLoc + carseats$Age))
+```
+If we compare the Multiple R-squared and Adjusted R-squared from a and from e: 
+In a only 23.35-23.93 % of sales variance is explained by those predictors, but in e 86.97-87.2 % of sales variance is explained by predictors. The E model fits data better. 
+
+
