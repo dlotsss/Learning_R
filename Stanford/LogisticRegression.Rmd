@@ -20,20 +20,23 @@ library(repr)
 options(repr.plot.width=4, repr.plot.height=4)
 ```
 ```{r}
-Pulse <- read.csv("~/IntroDataScience/R/D4/Data/Pulse.csv")
+Pulse <- read.csv("~/Downloads/Pulse.csv")
 attach(Pulse)
 ```
 
 ## Exploring the Data
 ```{r}
-summary(Pulse[,"Hgt"])
+summary(Pulse[,"Hgt"]) #this is because it is column 
 summary(Gender)
 ```
+this looks fairly trustworthy 
+
 ## Linear Model for predicting Gender based on Hgt
 ```{r}
 gender.lm<-lm(Gender ~ Hgt)
 summary(gender.lm)
 ```
+this doesn't really make sense because gender is categorical 
 ```{r}
 options(repr.plot.width=4, repr.plot.height=4)
 plot(Gender~Hgt)
@@ -50,10 +53,13 @@ PropMade=c(84/101,88/119,61/108,61/125,44/134)
 PuttLength=c(3,4,5,6,7)
 ```
 ```{r}
-odds=PropMade/(1-PropMade)
+odds=PropMade/(1-PropMade) #number of successes / number of failures
 odds
 4.941/0.488
 ```
+how many more times is it more likely to succeed rather then fail.
+Like from 3 feet we are 5 times more likely to succeed rather than fail.
+
 ## Logistic Regression Model
 ```{r}
 table(Gender,Hgt)
@@ -86,7 +92,7 @@ Predict Survival in thte ICU based on Age, SysBP, and Pulse.
 
 ```{r}
 detach(Pulse)
-ICU <- read.csv("~/IntroDataScience/R/D4/Data/ICU.csv")
+ICU <- read.csv("~/Downloads/ICU.csv")
 attach(ICU)
 ```
 ```{r}
@@ -173,7 +179,7 @@ Gtest <- function(model) {
   # 
   # Inputs: Null Devance, Residual Deviance, Null df, Residual df
   # Outputs: G test statistic, DF, and P-value 
-  # ToDO: Add test for to check if the model approproate for a G test!
+  # ToDO: Add test for to check if the model appropriate for a G test!
  
   if((summary(model)$family[1] == "binomial")) {
     n <- length(anova(model)[,1])
@@ -200,12 +206,12 @@ m.bad <- glm(formula = Survive ~ Age + SysBP + ICU$Pulse, family = "poisson")
 ## Nested G test
 Test the overall goodness of the model as we sequentially add predictors.
 ```{r}
-m.full <- glm(Survive ~ SysBP + Sex + I(Sex*SysBP), family = "binomial")
+m.full <- glm(Survive ~ SysBP + Sex + I(Sex*SysBP), family = "binomial") #by interactions we can make linear model really reach 
 summary(m.full)
 Gtest(m.full)
 ```
 ```{r}
-anova(m.full)
+anova(m.full) #anova returns pretty tables
 ```
 ## Plot of fit for male vs female
 ```{r}
