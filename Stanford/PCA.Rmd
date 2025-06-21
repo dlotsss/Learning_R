@@ -1,0 +1,43 @@
+---
+title: "PCA"
+output: html_document
+date: "2025-06-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+data(iris)
+
+```
+
+```{r}
+irispca = prcomp(iris[, -5])
+summary(irispca)
+```
+
+```{r}
+var = irispca$sdev^2
+pve = var/sum(var)
+
+var
+cumsum(pve)
+```
+```{r}
+scores <- as.data.frame(irispca$x)   
+scores$Species <- iris$Species   
+
+ggplot(data = scores) + 
+  geom_point(mapping = aes(x = PC1, y = PC2, color = Species))
+```
+
+```{r}
+ggplot(data = scores) + 
+  geom_point(mapping = aes(x = PC2, y = PC3, color = Species))
+```
+```{r}
+ggplot(data = scores) + 
+  geom_point(mapping = aes(x = PC3, y = PC4, color = Species))
+```
+from these we can conclude that it is enough variability from PC1 and PC2, because PC3 and PC4 gives just a confetti of colored dots. 
