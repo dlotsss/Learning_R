@@ -65,5 +65,61 @@ none of the variables' p values are small enough to say that these coefficients 
 ```{r}
 probs = predict(glm.fit, type="response")
 probs[1:15]
+
+contrasts(Direction)
 ```
-this predicts the possibility that the market will go "up". Because it's type is "response"
+this predicts the possibility that the market will go "up". Because it's type is "response", R uses the logistic regression. By default it would use linear one. Here most of them will go UP, because R created a dummy variable which is 1 at UP 
+
+```{r}
+glm.pred = rep("Down", 1250)
+glm.pred[probs >.5]="Up"
+table(glm.pred, Direction) 
+```
+here we made 1250 values of "Down" as a default. Then to those whose probs are >0.5 we gade "Up". Then we constructed table which serves as a confusion matrix. Those TP and TN values are 507+145= 652. 
+
+```{r}
+mean(glm.pred==Direction)
+```
+this shows for how many of days the model predicted direction correctly. For 52% of days. It might seem +- good, but actually this is the training set error. In order to actually measure the effectiveness of log regression model we need to separate data set into training and test sets. 
+
+We will create training set from 2001-2004 years and testing will be 2005. 
+
+```{r}
+train = Smarket[Year != 2005,]
+test = Smarket[Year == 2005,]
+dim(test)
+directions = Smarket[Year == 2005, "Direction"]
+```
+
+in directions the directions of actual test data set are stored, so we could compare them later. 
+
+```{r}
+fit2 = glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, data = train, family = binomial)
+fit2.probs = predict(fit2, test, type="response")
+fit2.pred = rep("Down", 252)
+fit2.pred[fit2.probs > 0.5] = "Up"
+
+table(fit2.pred, directions)
+mean(fit2.pred == directions)
+```
+from this we can infer that 77+44 were identified right, but it is actually only 48% of time to be correct. It is worse than random guessing
+
+```{r}
+glm.fits=glm(Direction ~ Lag1+Lag2, data=Smarket, family=binomial) 
+glm.probs=predict (glm.fits, test, type="response")
+glm.pred=rep("Down", 252)
+glm.pred[glm.probs >.5]="Up"
+table(glm.pred, directions)
+
+mean(glm.pred== directions)
+```
+We can say that when less predictors are used, the predicting algorithm is more effective. Probably because there is no correlation between today's return and previous days, they create a lot of unnecessary "noise" for the model. 
+
+```{r}
+predict(glm.fits, newdata = data.frame(Lag1=c(1.2 ,1.5), Lag2=c(1.1,-0.8)),type="response")
+```
+
+we want to make new data frame if we want to predict for specific values
+
+4.6.5 K-Nearest Neighbors
+
