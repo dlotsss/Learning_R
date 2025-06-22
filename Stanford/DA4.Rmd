@@ -50,6 +50,20 @@ summary(glm.fit)
 the lowest p value is for lag1 (0.145), but it is still >0.05, so we fail to reject the null hypothesis. We can't claim that there is a real relationship 
 
 ```{r}
-coef() 
+coef(glm.fit) 
 ```
 
+if we have an equation like y=a + b1x1 + b2x2 + ... 
+those coefficients are actually those b1, b2 values. Intercept is the a. But in order to see whether we can trust that, we need to have p value. 
+ here y=1 corresponds to “Up” and Y=0 to “Down”
+
+```{r}
+summary (glm.fit)$coef
+```
+none of the variables' p values are small enough to say that these coefficients are accurate. 
+
+```{r}
+probs = predict(glm.fit, type="response")
+probs[1:15]
+```
+this predicts the possibility that the market will go "up". Because it's type is "response"
