@@ -1,6 +1,6 @@
 ---
 title: "DA4"
-output: html_document
+output: pdf_document
 date: "2025-06-22"
 ---
 
@@ -40,3 +40,16 @@ ggplot(data = model1) +
   geom_point(mapping = aes(x = Volume, y = Year, color = Direction))
 ```
 through this graphs we can see that volume is increasing as time passes by
+
+4.6.2 Logistic Regression
+```{r}
+attach(Smarket)
+glm.fit = glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, data = Smarket, family=binomial)
+summary(glm.fit)
+```
+the lowest p value is for lag1 (0.145), but it is still >0.05, so we fail to reject the null hypothesis. We can't claim that there is a real relationship 
+
+```{r}
+coef() 
+```
+
