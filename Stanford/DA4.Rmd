@@ -1,0 +1,42 @@
+---
+title: "DA4"
+output: html_document
+date: "2025-06-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+ISLR Ch 4 Lab
+4.6.1 The Stock Market Data
+```{r}
+library(ISLR)
+library(ggplot2)
+?Smarket
+names(Smarket)
+```
+```{r}
+model1 = Smarket
+dim(Smarket)
+```
+
+this data set has 1250 rows and 9 columns 
+```{r}
+summary(Smarket)
+```
+```{r}
+cor(Smarket[,-9]) 
+```
+we make -9 because the direction column consists text. 
+The correlations between today's returns and previous days' returns (lag1-5) are really close to zero, so there's no relationship between previous returns and today's. 
+The only significant correlation is between volume and year (0.539), so let's plot it 
+
+```{r}
+plot(Smarket$Year, Smarket$Volume)
+```
+```{r}
+ggplot(data = model1) + 
+  geom_point(mapping = aes(x = Volume, y = Year, color = Direction))
+```
+through this graphs we can see that volume is increasing as time passes by
