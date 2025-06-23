@@ -1,0 +1,10 @@
+name: shortproject
+title:
+username: sofiya
+account: sofiya
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14978322
+bundleId: 10505604
+url: https://sofiya.shinyapps.io/shortproject/
+version: 1

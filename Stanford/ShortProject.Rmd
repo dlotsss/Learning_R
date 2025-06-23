@@ -24,7 +24,7 @@ mem.maxVSize()
 i deleted previous variables and other stuff because there was no enough space for the new model. 
 
 ```{r}
-vehicles = read.csv("~/Downloads/Vehicles.csv")
+vehicles = read.csv("~/Downloads/algoritmika/python pro 1 year/Дасаева София PP/Learning_R/Stanford/ShortProject/Vehicles.csv")
 dim(vehicles)
 ```
 
@@ -127,21 +127,9 @@ mean(model.preds == accessibility)
 we can see that our model only predicts that every vehicle of this type won't be accessible. However, it's accuracy is 99%. If we change the model.probs > 0.5 condition so it would be like "when it is bigger than the mean", it's accuracy will fell down to only 69% 
 
 ```{r}
-library(class)
-train.X <- vehicles[vehicles$LastValidDate <= as.POSIXct("2022-12-31 23:59:59", tz="UTC"), c("Status", "ModelYear_clean")]
-test.X  <- vehicles[vehicles$LastValidDate >= as.POSIXct("2023-01-01 00:00:00", tz="UTC"),  c("Status", "ModelYear_clean")]
-train.Accessibility <- vehicles$Wheelchair.Accessible[vehicles$LastValidDate <= as.POSIXct("2022-12-31 23:59:59", tz="UTC")]
 
-neighbours = c()
-accuracy = c()
-
-for (i in 1:50) {
-  knn.pred = knn(train.X, test.X, train.Accessibility, k=i)
-  accuracy[i] = mean(knn.pred == accessibility)
-  neighbours[i] = i
-}
-
-plot(neighbours, accuracy)
+ggplot(data = vehicles) + 
+  geom_point(mapping = aes(x = Wheelchair.Accessible, y = ModelYear_clean, color = Vehicle.Fuel.Source))
 ```
 
 
