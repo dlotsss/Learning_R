@@ -15,6 +15,9 @@ One of my initiative is an affordable and convenient alternative to traditional 
 In this file, I will utilize all my current knowledge of R to get the most information out of this and be able to predict the accessibility ranking from predictors. 
 
 ```{r}
+install.packages("dplyr")
+
+library(caret)
 rm(list=ls())
 gc()
 mem.maxVSize()
@@ -22,6 +25,71 @@ mem.maxVSize()
 i deleted previous variables and other stuff because there was no enough space for the new model. 
 
 ```{r}
-
+vehicles = read.csv("~/Downloads/Vehicles.csv")
+dim(vehicles)
 ```
+
+this is how namy rows and columns and still not enough space. That's why I decided to take just a little percent of all the rows so R could process them. 
+
+```{r}
+library(dplyr)
+
+range(vehicles$Vehicle.Model.Year, na.rm = TRUE)
+
+attach(vehicles)
+
+vehicles$ModelYear_clean <-
+  with(vehicles,
+       ifelse(Vehicle.Model.Year < 1900 |
+              Vehicle.Model.Year > as.integer(format(Sys.Date(), "%Y")),
+              2014, Vehicle.Model.Year)
+   )
+
+summary(vehicles$ModelYear_clean)
+```
+
+I detected that Years in the data set vary from 0 to 2901 which is bad. I wanted to make those NA's but find out that it will be the whole 3531 values out of 99153. That's why I decided that I can fill those with median value (2014).
+
+```{r}
+set.seed(1)
+idx <- createDataPartition(
+  y     = vehicles$Wheelchair.Accessible,
+  p     = 0.005,       
+  list  = FALSE
+)
+
+start <- which(names(vehicles) == "City")
+end   <- which(names(vehicles) == "State")
+
+vehicles_sample <- vehicles[idx, -(start:end)]
+
+prop.table(table(vehicles$Wheelchair.Accessible))
+prop.table(table(vehicles_sample$Wheelchair.Accessible))
+
+contrasts(factor(vehicles_sample$Wheelchair.Accessible))
+
+head(vehicles_sample$Wheelchair.Accessible)
+
+vehicles_sample$AccessibleNum <- ifelse(vehicles_sample$Wheelchair.Accessible == "Y", 1, 0)
+
+
+summary(glm(AccessibleNum ~ ., 
+               data   = vehicles_sample,
+               family = binomial,
+               na.action = na.omit))
+```
+We can understand from the summary above that Company Name or Model is not really give a statistically significant predictor. Therefore, we can now try glm without it. 
+
+```{r}
+vehicles$AccessibleNumber <- ifelse(vehicles$Wheelchair.Accessible == "Y", 1, 0)
+
+summary(glm(AccessibleNumber ~ Vehicle.Type*Status + Vehicle.Fuel.Source + ModelYear_clean, 
+               data   = vehicles,
+               family = binomial,
+               na.action = na.omit))
+```
+In the new glm model I used all the rows from the original Vehicle.csv. Now we see that StatusFORECLOSURE, StatusHOLD and Vehicle.Model.Year are significant predictors because their z value and Pr(>|z|) are small enough. From this we can construct our prediction. 
+
+
+
 
