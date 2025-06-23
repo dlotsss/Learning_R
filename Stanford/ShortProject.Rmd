@@ -1,0 +1,27 @@
+---
+title: "ShortProject"
+output: pdf_document
+date: "2025-06-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+As I have told you at our first session, I really want to help people or planet through things that I can do. I believe that technology is a tool for solving global problems and improving the world. 
+
+One of my initiative is an affordable and convenient alternative to traditional electric wheelchairs made by combining a mechanical wheelchair with a gyroscooter(hoverboard) and lever systems. This innovation improves lifes of people with disabilities. Also I researched the accessibility of the environment and its effect on the quality of life of disabled people. I decided my short project to be meaningful and important to me, so I found a data set on kaggle which has different characteristics of vehicles and the column of their wheelchair accessibility  
+
+In this file, I will utilize all my current knowledge of R to get the most information out of this and be able to predict the accessibility ranking from predictors. 
+
+```{r}
+rm(list=ls())
+gc()
+mem.maxVSize()
+```
+i deleted previous variables and other stuff because there was no enough space for the new model. 
+
+```{r}
+
+```
+

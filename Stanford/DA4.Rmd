@@ -123,3 +123,51 @@ we want to make new data frame if we want to predict for specific values
 
 4.6.5 K-Nearest Neighbors
 
+```{r}
+library(class)
+train.X = cbind(Lag1, Lag2)[Year != 2005,]
+test.X= cbind(Lag1, Lag2)[Year == 2005,] 
+train.Direction = Direction[Year != 2005]
+```
+we need a train matrix and a test matrix and then the directions for train 
+
+```{r}
+set.seed(1)
+knn.pred = knn(train.X, test.X, train.Direction, k=1)
+
+table(knn.pred, directions)
+mean(knn.pred == directions)
+```
+(83+43) is only a half of the cases that were predicted correctly. We should change the k value. 
+
+```{r}
+set.seed(1)
+knn.pred = knn(train.X, test.X, train.Direction, k=2)
+
+table(knn.pred, directions)
+mean(knn.pred == directions)
+```
+2 is worse 
+
+```{r}
+set.seed(1)
+knn.pred = knn(train.X, test.X, train.Direction, k=3)
+
+table(knn.pred, directions)
+mean(knn.pred == directions)
+```
+when k is 3 it is better, 53% of time it is right
+
+```{r}
+neighbours = c()
+accuracy = c()
+
+for (i in 1:252) {
+  knn.pred = knn(train.X, test.X, train.Direction, k=i)
+  accuracy[i] = mean(knn.pred == directions)
+  neighbours[i] = i
+}
+
+plot(neighbours, accuracy)
+```
+we can see that actually the best accuracy is given by 200-250 neighbours
