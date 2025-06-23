@@ -15,7 +15,6 @@ One of my initiative is an affordable and convenient alternative to traditional 
 In this file, I will utilize all my current knowledge of R to get the most information out of this and be able to predict the accessibility ranking from predictors. 
 
 ```{r}
-install.packages("dplyr")
 
 library(caret)
 rm(list=ls())
@@ -50,7 +49,7 @@ summary(vehicles$ModelYear_clean)
 
 I detected that Years in the data set vary from 0 to 2901 which is bad. I wanted to make those NA's but find out that it will be the whole 3531 values out of 99153. That's why I decided that I can fill those with median value (2014).
 
-```{r}
+
 set.seed(1)
 idx <- createDataPartition(
   y     = vehicles$Wheelchair.Accessible,
@@ -77,19 +76,72 @@ summary(glm(AccessibleNum ~ .,
                data   = vehicles_sample,
                family = binomial,
                na.action = na.omit))
+
+```{r}
+library(lubridate)
+
+vehicles$LastValidDate <- mdy_hms(vehicles$Last.Valid.Date, tz="UTC")
+
+range(vehicles$LastValidDate, na.rm = TRUE)
+table(year(vehicles$LastValidDate))
 ```
+
 We can understand from the summary above that Company Name or Model is not really give a statistically significant predictor. Therefore, we can now try glm without it. 
 
 ```{r}
 vehicles$AccessibleNumber <- ifelse(vehicles$Wheelchair.Accessible == "Y", 1, 0)
 
-summary(glm(AccessibleNumber ~ Vehicle.Type*Status + Vehicle.Fuel.Source + ModelYear_clean, 
+summary(glm(AccessibleNumber ~ Status + Vehicle.Fuel.Source + ModelYear_clean + LastValidDate, 
                data   = vehicles,
                family = binomial,
                na.action = na.omit))
 ```
-In the new glm model I used all the rows from the original Vehicle.csv. Now we see that StatusFORECLOSURE, StatusHOLD and Vehicle.Model.Year are significant predictors because their z value and Pr(>|z|) are small enough. From this we can construct our prediction. 
+In the new glm model I used all the rows from the original Vehicle.csv. Now we see that StatusFORECLOSURE, StatusHOLD and ModelYear_clean are significant predictors because their z value and Pr(>|z|) are small enough. From this we can construct our prediction. 
 
 
+```{r}
+train <- subset(vehicles, LastValidDate <= as.POSIXct("2022-12-31 23:59:59", tz="UTC"))
+test  <- subset(vehicles, LastValidDate >= as.POSIXct("2023-01-01 00:00:00", tz="UTC"))
+
+accessibility <- vehicles$Wheelchair.Accessible[
+  vehicles$LastValidDate >= as.POSIXct("2023-01-01 00:00:00", tz="UTC")
+]
+
+```
+
+I created the train set and the test sets of the vehicles data set and also created the accessibility so then we could compare the accuracy. 
+
+```{r}
+model = glm(AccessibleNumber ~ Status + ModelYear_clean, data = vehicles, family=binomial)
+model.probs = predict(model, test, type="response")
+
+summary(model.probs)
+
+model.preds = rep("N", 2791)
+model.preds[model.probs > 0.5] = "Y"
+
+table(model.preds, accessibility)
+mean(model.preds == accessibility)
+
+```
+we can see that our model only predicts that every vehicle of this type won't be accessible. However, it's accuracy is 99%. If we change the model.probs > 0.5 condition so it would be like "when it is bigger than the mean", it's accuracy will fell down to only 69% 
+
+```{r}
+library(class)
+train.X <- vehicles[vehicles$LastValidDate <= as.POSIXct("2022-12-31 23:59:59", tz="UTC"), c("Status", "ModelYear_clean")]
+test.X  <- vehicles[vehicles$LastValidDate >= as.POSIXct("2023-01-01 00:00:00", tz="UTC"),  c("Status", "ModelYear_clean")]
+train.Accessibility <- vehicles$Wheelchair.Accessible[vehicles$LastValidDate <= as.POSIXct("2022-12-31 23:59:59", tz="UTC")]
+
+neighbours = c()
+accuracy = c()
+
+for (i in 1:50) {
+  knn.pred = knn(train.X, test.X, train.Accessibility, k=i)
+  accuracy[i] = mean(knn.pred == accessibility)
+  neighbours[i] = i
+}
+
+plot(neighbours, accuracy)
+```
 
 
