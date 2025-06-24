@@ -1,0 +1,33 @@
+---
+title: "DA5"
+output: pdf_document
+date: "2025-06-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+states = row.names(USArrests)
+states
+```
+we got the names of rows - states of the US 
+
+```{r}
+names(USArrests)
+```
+
+here are the names of colums 
+
+```{r}
+apply(USArrests, 2, mean)
+```
+
+apply works the same as in python
+2 means that we want this function to be applied for columns 
+
+```{r}
+apply(USArrests, 2, var)
+```
+
