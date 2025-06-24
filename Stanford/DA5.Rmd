@@ -31,3 +31,57 @@ apply works the same as in python
 apply(USArrests, 2, var)
 ```
 
+the biggest variance is among assault column 
+
+```{r}
+arrestspca = prcomp(USArrests, scale = TRUE)
+summary(arrestspca)
+```
+```{r}
+names(arrestspca)
+arrestspca$scale
+arrestspca$center
+
+arrestspca$rotation
+```
+A large absolute loading ( –0.583 for Assault on PC1) means that variable contributes heavily to that component.
+- sing tells the direction 
+
+We can see that 
+PC1 is essentially an “overall crime level” axis (all four crimes load strongly and in the same direction).
+PC2 contrasts UrbanPop (–0.873) against the other three (positive but smaller): a “rural vs urban” dimension.
+PC3 is driven by Rape (0.818) versus the rest.
+PC4 pits Assault (–0.743) against Murder (0.649).
+
+```{r}
+biplot(arrestspca, scale=0)
+```
+```{r}
+arrestspca$rotation=-arrestspca$rotation
+arrestspca$x=-arrestspca$x
+biplot (arrestspca , scale =0)
+```
+
+```{r}
+vari = arrestspca$sdev^2
+vari
+
+```
+
+The variance
+
+```{r}
+pve = vari / sum(vari)
+pve
+```
+62% of variance is explained by pc1, 25 by pc2, 9 by pc3 and only 4 by pc4
+
+```{r}
+plot(pve , xlab=" Principal Component ", ylab="Proportion of Variance Explained ", ylim=c(0,1), type='b')
+```
+this is illustrated in the graph. We again see the hockey stick. The elbow is probably PC3 because after it it started to be more horizontal 
+
+```{r}
+plot(cumsum(pve), xlab="Principal Component ", ylab="Cumulative Proportion of Variance Explained ", ylim=c(0,1), type='b')
+```
+this is for culminative one
