@@ -1,0 +1,47 @@
+---
+title: "DA6"
+output: pdf_document
+date: "2025-06-25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+10.5 Lab 2: Clustering
+```{r}
+set.seed(2)
+x = matrix(rnorm(50*2), ncol = 2)
+x[1:25,1]=x[1:25,1]+3
+x[1:25,2]=x[1:25,2]-4
+
+x
+```
+
+```{r}
+km.out = kmeans(x, 2, nstart =20)
+plot(x, col=(km.out$cluster), main="K-Means Clustering Results with K=2", xlab="", ylab="", pch=20, cex=2)
+
+```
+```{r}
+set.seed(4)
+km.out=kmeans(x,3, nstart =20)
+km.out
+
+```
+nstart = 20 means run the k-means algorithm 20 times, each time with a new random set of starting centers, and then keep the solution that has the lowest total within-cluster sum of squares.
+
+km.out$cluster: a length-n vector assigning each row of x to cluster 1, 2, or 3.
+
+km.out$centers: the coordinates of the three cluster centroids in feature space.
+
+km.out$withinss: vector of within-cluster sum of squares for each cluster.
+
+km.out$tot.withinss: the total within-cluster sum of squares (the quantity that k-means tries to minimize).
+
+km.out$betweenss: the between-cluster sum of squares.
+
+```{r}
+plot(x, col=(km.out$cluster+1), main="K-Means Clustering Results with K=2", xlab="", ylab="", pch=20, cex=2)
+```
+it is better to use a large nstart (20/50), so it would be a real good graph
