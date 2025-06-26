@@ -15,20 +15,124 @@ One of my initiative is an affordable and convenient alternative to traditional 
 In this file, I will utilize all my current knowledge of R to get the most information out of this and be able to predict the accessibility ranking from predictors. 
 
 ```{r}
-
+library(dplyr)
 library(caret)
 rm(list=ls())
 gc()
 mem.maxVSize()
 ```
-i deleted previous variables and other stuff because there was no enough space for the new model. 
+Using these, I deleted previous variables and other stuff that I had from other files because there was no enough space for the new data set. 
 
 ```{r}
-vehicles = read.csv("~/Downloads/algoritmika/python pro 1 year/Дасаева София PP/Learning_R/Stanford/ShortProject/Vehicles.csv")
+vehicles = read.csv("~/Downloads/algoritmika/python pro 1 year/Дасаева София PP/Learning_R/Stanford/ShortProject/Vehicles.csv", na = c("", "NA"))
 dim(vehicles)
 ```
 
-this is how namy rows and columns and still not enough space. That's why I decided to take just a little percent of all the rows so R could process them. 
+This is how many rows and columns the data set has. I decided to see how many of NA are there and what to do with them. 
+
+```{r}
+
+dim(vehicles[is.na(vehicles$Vehicle.Type),])
+dim(vehicles[is.na(vehicles$Public.Vehicle.Number),])
+dim(vehicles[is.na(vehicles$Status),])
+dim(vehicles[is.na(vehicles$Vehicle.Make),])
+dim(vehicles[is.na(vehicles$Vehicle.Model),])
+dim(vehicles[is.na(vehicles$Vehicle.Model.Year),])
+dim(vehicles[is.na(vehicles$Vehicle.Color),])
+dim(vehicles[is.na(vehicles$Vehicle.Fuel.Source),])
+dim(vehicles[is.na(vehicles$Wheelchair.Accessible),])
+dim(vehicles[is.na(vehicles$Company.Name),])
+dim(vehicles[is.na(vehicles$Address),])
+dim(vehicles[is.na(vehicles$City),])
+dim(vehicles[is.na(vehicles$State),])
+dim(vehicles[is.na(vehicles$ZIP.Code),])
+dim(vehicles[is.na(vehicles$Taxi.Affiliation),])
+dim(vehicles[is.na(vehicles$Taxi.Medallion.License.Management),])
+dim(vehicles[is.na(vehicles$Record.ID),])
+dim(vehicles[is.na(vehicles$Last.Valid.Date),])
+dim(vehicles[is.na(vehicles$Record.Version.ID),])
+
+
+
+```
+Vehicle.Make has 3286 NAs (out of 99153) - less than 3%
+Vehicle.Model 
+Vehicle.Model.Year 
+Vehicle.Color
+Address
+City
+State
+ZIP.Code
+Taxi.Medallion.License.Management
+Taxi.Affiliation
+
+```{r}
+vehicles <- vehicles[ , -(15:16)]
+```
+columns like: 
+Taxi.Medallion.License.Management
+Taxi.Affiliation
+have a lot of NAs (34k and 40k), so  we can omit those columns entirely - 30%-40% of them are NAs
+
+
+```{r}
+na_counts <- rowSums(is.na(vehicles))
+rows_4plus <- which(na_counts >= 4)
+length(rows_4plus)   
+
+vehicles <- vehicles[-rows_4plus, ]
+```
+Then I also tried to find those rows that doesn't possess a lot of information. For example, those rows that have 4+ NAs when only 8 columns might have NA, don't have in fact a lot of valuable information. So we can delete those. It is 3444 rows.  
+
+There are still columns with NA's, but the number of those NA's decreased significantly. 
+
+```{r}
+dim(vehicles[is.na(vehicles$Vehicle.Make),])
+dim(vehicles[is.na(vehicles$Vehicle.Model),])
+dim(vehicles[is.na(vehicles$Vehicle.Model.Year),])
+dim(vehicles[is.na(vehicles$Vehicle.Color),])
+dim(vehicles[is.na(vehicles$Address),])
+dim(vehicles[is.na(vehicles$City),])
+dim(vehicles[is.na(vehicles$State),])
+dim(vehicles[is.na(vehicles$ZIP.Code),])
+```
+Address, City and State don't even have NAs anymore. It means that all those NA's were actually rows with 4+ missing values. The number of those that still have missing value is too small. The biggest of them is just 0.29%. We can delete those too so they don't create noise. Together, I will delete 0.82% of data which is not even a 1%. 
+
+```{r}
+na_counts <- rowSums(is.na(vehicles))
+rows_1plus <- which(na_counts >= 1)
+length(rows_1plus)   
+
+vehicles <- vehicles[-rows_1plus, ]
+```
+
+```{r}
+dim(vehicles[is.na(vehicles$Vehicle.Make),])
+dim(vehicles[is.na(vehicles$Vehicle.Model),])
+dim(vehicles[is.na(vehicles$Vehicle.Model.Year),])
+dim(vehicles[is.na(vehicles$Vehicle.Color),])
+dim(vehicles[is.na(vehicles$ZIP.Code),])
+```
+There are no missing values now, therefore, we can make a good analysis. 
+
+
+
+I decided to take just 80 percent of all the rows as train test and at the same time 20% of rows will be in test. I wanted to save the percantage of wheelchair accessible vehicles over all vehicles. 
+
+As Wheelchair.Accessible is a categorical value, linear regression is not the tool. I will try to use all models that are good at suprevised and supervised learning. Then I will compare which method was the most efficient one for this data set. 
+
+```{r}
+lines <- createDataPartition(vehicles$Wheelchair.Accessible, p = 0.8,
+                                  list = FALSE,                            
+                                  times = 1)
+
+vehicles.train = vehicles[lines, ]
+vehicles.test = vehicles[-lines, ]
+
+vehicles.glm = glm(Wheelchair.Accessible ~ ., data = vehicles.train)
+```
+
+
 
 ```{r}
 library(dplyr)
