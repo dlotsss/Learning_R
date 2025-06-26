@@ -143,71 +143,41 @@ If we ran the summary again, there will be nothing odd:
 summary(vehicles$Vehicle.Model.Year)
 
 ```
+It turned out that State column has only one value - IL, which will not affect the y in any way, so I will drop it. 
+```{r}
+vehicles = vehicles[, -13]
+```
 Let's dive into real analysis after cleaning the data. 
 
 I decided to take just 80 percent of all the rows as train test and at the same time 20% of rows will be in test. I wanted to save the percantage of wheelchair accessible vehicles over all vehicles. 
 
 As Wheelchair.Accessible is a categorical value, linear regression is not the tool. I will try to use all models that are good at suprevised and supervised learning. Then I will compare which method was the most efficient one for this data set. 
 
+
 ```{r}
 lines <- createDataPartition(vehicles$Wheelchair.Accessible, p = 0.8,
                                   list = FALSE,                            
                                   times = 1)
 
+vehicles$Wheelchair.Accessible<- ifelse(
+  vehicles$Wheelchair.Accessible == "Y", 1, 0
+)
+
 vehicles.train = vehicles[lines, ]
 vehicles.test = vehicles[-lines, ]
 
-vehicles.glm = glm(Wheelchair.Accessible ~ ., data = vehicles.train)
+
+vehicles.glm = glm(Wheelchair.Accessible ~ Public.Vehicle.Number, data = vehicles.train, 
+                   family = binomial)
+summary(vehicles.glm)
 ```
 
 
 
-```{r}
-library(dplyr)
-
-range(vehicles$Vehicle.Model.Year, na.rm = TRUE)
-
-attach(vehicles)
-
-vehicles$ModelYear_clean <-
-  with(vehicles,
-       ifelse(Vehicle.Model.Year < 1900 |
-              Vehicle.Model.Year > as.integer(format(Sys.Date(), "%Y")),
-              2014, Vehicle.Model.Year)
-   )
-
-summary(vehicles$ModelYear_clean)
-```
-
-I detected that Years in the data set vary from 0 to 2901 which is bad. I wanted to make those NA's but find out that it will be the whole 3531 values out of 99153. That's why I decided that I can fill those with median value (2014).
 
 
-set.seed(1)
-idx <- createDataPartition(
-  y     = vehicles$Wheelchair.Accessible,
-  p     = 0.005,       
-  list  = FALSE
-)
-
-start <- which(names(vehicles) == "City")
-end   <- which(names(vehicles) == "State")
-
-vehicles_sample <- vehicles[idx, -(start:end)]
-
-prop.table(table(vehicles$Wheelchair.Accessible))
-prop.table(table(vehicles_sample$Wheelchair.Accessible))
-
-contrasts(factor(vehicles_sample$Wheelchair.Accessible))
-
-head(vehicles_sample$Wheelchair.Accessible)
-
-vehicles_sample$AccessibleNum <- ifelse(vehicles_sample$Wheelchair.Accessible == "Y", 1, 0)
 
 
-summary(glm(AccessibleNum ~ ., 
-               data   = vehicles_sample,
-               family = binomial,
-               na.action = na.omit))
 
 ```{r}
 library(lubridate)
@@ -225,8 +195,7 @@ vehicles$AccessibleNumber <- ifelse(vehicles$Wheelchair.Accessible == "Y", 1, 0)
 
 summary(glm(AccessibleNumber ~ Status + Vehicle.Fuel.Source + ModelYear_clean + LastValidDate, 
                data   = vehicles,
-               family = binomial,
-               na.action = na.omit))
+               family = binomial))
 ```
 In the new glm model I used all the rows from the original Vehicle.csv. Now we see that StatusFORECLOSURE, StatusHOLD and ModelYear_clean are significant predictors because their z value and Pr(>|z|) are small enough. From this we can construct our prediction. 
 
