@@ -1,0 +1,176 @@
+---
+title: "DA7"
+output: pdf_document
+date: "2025-06-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+8.3.1 Fitting Classification Trees
+```{r}
+library(tree)
+library(ISLR)
+rm(list=ls())
+
+attach(Carseats)
+summary(Carseats$Sales)
+```
+the man and median is 7.49 and 7.496, so in order to make categorical value from continuous, I will check whether it is higher or lower than 8
+
+```{r}
+high = ifelse(Sales >= 8, "Yes", "No")
+high = factor(high)
+Carseats = data.frame(Carseats, high)
+
+```
+then I made high a factor variable and merged the carseats data set 
+
+```{r}
+carseats.tree <- tree(
+  formula = high ~ . - Sales,
+  data    = Carseats
+)
+summary(carseats.tree)
+```
+```{r}
+plot(carseats.tree)
+```
+```{r}
+
+set.seed(2)
+lines=sample(1: nrow(Carseats), 200)
+train = Carseats[lines, ]
+test = Carseats [-lines, ]
+high.test = high[-lines]
+tree.carseats =tree(high ~ .-Sales, train)
+tree.pred = predict(tree.carseats, test, type="class")
+table(tree.pred, high.test)
+mean(tree.pred == high.test)
+```
+77% of accuracy 
+
+```{r}
+
+set.seed(3)
+cv.carseats =cv.tree(tree.carseats, FUN=prune.misclass)
+names(cv.carseats)
+
+cv.carseats
+
+```
+using this method we can understand which complexity is the best to use. Here we can see that the minimum dev is 74 when the size is 21. 
+
+```{r}
+par(mfrow=c(1,2))
+
+plot(cv.carseats$size ,cv.carseats$dev ,type="b")
+plot(cv.carseats$k ,cv.carseats$dev ,type="b")
+```
+on these graphs we can see that 21 results the minimum dev; 
+
+```{r}
+prune.carseats = prune.misclass (tree.carseats, best=21)
+plot(prune.carseats)
+text(prune.carseats, pretty =0)
+
+```
+```{r}
+tree.pred=predict(prune.carseats, test , type="class")
+table(tree.pred, high.test)
+mean(tree.pred == high.test)
+```
+77.5% accuracy 
+
+if i try increasing or decreasing it, it will be lower. 77.5% is the best accuracy I get.
+
+8.3.2 Fitting Regression Trees
+
+```{r}
+library(MASS)
+set.seed(1)
+train = sample(1:nrow(Boston), nrow(Boston)/2)
+tree.boston=tree(medv ~ .,Boston, subset=train)
+summary(tree.boston)
+
+```
+```{r}
+plot(tree.boston)                 
+text(tree.boston, pretty = 0) 
+
+```
+lower values of lstat correspond to more expensive houses. 
+
+```{r}
+cv.boston=cv.tree(tree.boston)
+plot(cv.boston$size, cv.boston$dev, type='b')
+```
+lower dev is with size of 7
+
+```{r}
+prune.boston=prune.tree(tree.boston ,best=7)
+plot(prune.boston)
+text(prune.boston , pretty = 0)
+```
+
+```{r}
+yhat=predict(tree.boston, newdata=Boston[- train, ])
+boston.test = Boston[-train ,"medv"]
+plot(yhat, boston.test)
+abline(0, 1)
+
+```
+
+```{r}
+mean((yhat - boston.test)^2)
+```
+MSE associated with the regression tree is 35.29. Tree explains about 59 % of the variance in sale price.
+
+
+8.3.3 Bagging and Random Forests
+```{r}
+library( randomForest)
+set.seed(1)
+bag.boston= randomForest( medv ~ ., data=Boston, subset=train,
+  mtry = 13, importance =TRUE)
+bag.boston
+```
+The argument mtry=13 indicates that all 13 predictors should be considered for each split of the tree
+
+```{r}
+yhat.bag = predict(bag.boston, newdata=Boston[-train ,])
+plot(yhat.bag , boston.test)
+abline(0 ,1)
+
+```
+Most points lie reasonably close to the identity line, which tells that bagged model is doing a pretty good job predicting house prices
+
+```{r}
+mean((yhat.bag - boston.test)^2)
+```
+mse of 23.59 is a pretty good figure
+```{r}
+bag.boston = randomForest(medv ~ .,data=Boston , subset=train,
+  mtry=13, ntree=25)
+yhat.bag = predict(bag.boston, newdata=Boston[-train, ])
+mean((yhat.bag - boston.test)^2)
+```
+higher ntree figure makes the mse 23.45 
+
+```{r}
+set.seed(1)
+rf.boston= randomForest(medv ~ ., data=Boston, subset=train,
+  mtry=6, importance =TRUE)
+yhat.rf = predict(rf.boston, newdata=Boston[- train ,])
+mean((yhat.rf-boston.test)^2)
+
+```
+```{r}
+importance (rf.boston)
+```
+```{r}
+varImpPlot(rf.boston)
+```
+rm and lstat are the best predictors for tree 
+
