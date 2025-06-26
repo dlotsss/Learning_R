@@ -115,7 +115,35 @@ dim(vehicles[is.na(vehicles$ZIP.Code),])
 ```
 There are no missing values now, therefore, we can make a good analysis. 
 
+```{r}
+summary(vehicles$Vehicle.Model.Year)
+```
 
+The next thing I noticed is that Vehicle.Model.Year contains years like 0 and 2911. 
+
+```{r}
+dim(vehicles[(vehicles$Vehicle.Model.Year < 1885),])
+dim(vehicles[(vehicles$Vehicle.Model.Year > 2025),])
+
+```
+It turned out that 198 rows have not appropriate years. It is about 0.2% of the data, so we can also drop them. 
+
+```{r}
+bad <- which(
+  vehicles$Vehicle.Model.Year < 1885 |
+  vehicles$Vehicle.Model.Year > as.integer(format(Sys.Date(), "%Y"))
+)
+
+length(bad)
+
+vehicles <- vehicles[-bad, ]
+```
+If we ran the summary again, there will be nothing odd:
+```{r}
+summary(vehicles$Vehicle.Model.Year)
+
+```
+Let's dive into real analysis after cleaning the data. 
 
 I decided to take just 80 percent of all the rows as train test and at the same time 20% of rows will be in test. I wanted to save the percantage of wheelchair accessible vehicles over all vehicles. 
 
