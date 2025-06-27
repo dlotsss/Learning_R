@@ -153,7 +153,7 @@ I decided to take just 80 percent of all the rows as train test and at the same 
 
 As Wheelchair.Accessible is a categorical value, linear regression is not the tool. I will try to use all models that are good at suprevised and supervised learning. Then I will compare which method was the most efficient one for this data set. 
 
-
+I tried to iterate the code on different predictors, because it was to much for the model to proccess if do it everything all at once
 ```{r}
 lines <- createDataPartition(vehicles$Wheelchair.Accessible, p = 0.8,
                                   list = FALSE,                            
@@ -166,8 +166,134 @@ vehicles$Wheelchair.Accessible<- ifelse(
 vehicles.train = vehicles[lines, ]
 vehicles.test = vehicles[-lines, ]
 
+vehicles.glm = glm(Wheelchair.Accessible ~ Vehicle.Type, data = vehicles.train, 
+                   family = binomial)
+summary(vehicles.glm)
 
+```
+If type is Charter Sightseeing, Medicar  or Taxi, it has statistically significant effect on the y
+
+```{r}
 vehicles.glm = glm(Wheelchair.Accessible ~ Public.Vehicle.Number, data = vehicles.train, 
+                   family = binomial)
+summary(vehicles.glm)
+
+```
+Public.Vehicle.Number is considered statistically important, but it needs to be checked
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ Status, data = vehicles.train, 
+                   family = binomial)
+summary(vehicles.glm)
+
+```
+If status is FORECLOSURE, INACTIVE, RESERVED, SURRENDER, VIOLATION, it does have a significant effect on the y. 
+Status of HOLD is considered moderately significant
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ Vehicle.Make, data = vehicles.train, 
+                   family = binomial)
+summary(vehicles.glm)
+
+```
+Vehicle.Make doesn't affect the Wheelchair Accessibility
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ Vehicle.Model, data = vehicles.train, 
+                   family = binomial)
+summary(vehicles.glm)
+
+```
+Vehicle.Model also doesn't affect the Wheelchair Accessibility
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ Vehicle.Model.Year, data = vehicles.train, 
+                   family = binomial)
+summary(vehicles.glm)
+```
+Wheelchair.Model.Year is statistically significant 
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ Vehicle.Color, data = vehicles.train, 
+                   family = binomial)
+summary(vehicles.glm)
+
+```
+Vehicle.Color is not statistically significant for y
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ Vehicle.Fuel.Source, data = vehicles.train, 
+                   family = binomial)
+summary(vehicles.glm)
+```
+Vehicle.Fuel.Source is also considered not important for the vehicle.  
+
+For the following columns, training data set was too large, therefore, I decided to make a very little data subset just to check whether those predictors are significant or not. 
+
+```{r}
+lines <- createDataPartition(vehicles$Wheelchair.Accessible, p = 0.01,
+                                  list = FALSE,                            
+                                  times = 1)
+vehicles.check = vehicles[lines, ]
+vehicles.glm = glm(Wheelchair.Accessible ~ Company.Name, data = vehicles.check, 
+                  family = binomial)
+summary(vehicles.glm)
+```
+Company.Name is not a significant predictor
+
+```{r}
+# find top 10
+top10 <- names(sort(table(vehicles.train$Company.Name), decreasing=TRUE))[1:10]
+
+# create a new factor with only 11 levels (10 + “Other”)
+vehicles.train$Company2 <- factor(
+  ifelse(vehicles.train$Company.Name %in% top10,
+         vehicles.train$Company.Name,
+         "Other"),
+  levels = c(top10, "Other")
+)
+
+summary(glm(Wheelchair.Accessible ~ Company2, data = vehicles.train, 
+                  family = binomial))
+```
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ Address, data = vehicles.check, 
+                   family = binomial)
+summary(vehicles.glm)
+```
+Address is also not a significant predictor
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ City, data = vehicles.train, 
+                   family = binomial)
+summary(vehicles.glm)
+```
+
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ Record.ID, data = vehicles.check, 
+                   family = binomial)
+summary(vehicles.glm)
+```
+
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ ZIP.Code, data = vehicles.train, 
+                   family = binomial)
+summary(vehicles.glm)
+```
+ZIP code appears to be statistically significant. 
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ Last.Valid.Date, data = vehicles.check, 
+                   family = binomial)
+summary(vehicles.glm)
+```
+
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ Record.Version.ID, data = vehicles.check, 
                    family = binomial)
 summary(vehicles.glm)
 ```
@@ -178,15 +304,16 @@ summary(vehicles.glm)
 
 
 
-
+Now, as we undesrtood statistically significant predictors, we can make a real model. 
 ```{r}
-library(lubridate)
+vehicles.glm = glm(Wheelchair.Accessible ~ Vehicle.Type + Status + Vehicle.Model.Year 
+                   + Public.Vehicle.Number + ZIP.Code, data = vehicles.train, family = "binomial")
 
-vehicles$LastValidDate <- mdy_hms(vehicles$Last.Valid.Date, tz="UTC")
-
-range(vehicles$LastValidDate, na.rm = TRUE)
-table(year(vehicles$LastValidDate))
+summary(vehicles.glm)
 ```
+From this summary we can understand that Vehicle.Type, Status, Vehicle.Model.Year, Public.Vehicle.Numer and ZIP.Code are indeed statistically significant predictors. 
+
+Now we need to see how accurately the model predicts the outcomes (whether the vehicle will be accessible or not)
 
 We can understand from the summary above that Company Name or Model is not really give a statistically significant predictor. Therefore, we can now try glm without it. 
 
