@@ -17,6 +17,8 @@ In this file, I will utilize all my current knowledge of R to get the most infor
 ```{r}
 library(dplyr)
 library(caret)
+library(ggplot2)
+library(repr) 
 rm(list=ls())
 gc()
 mem.maxVSize()
@@ -415,7 +417,6 @@ From this summary we can understand that Vehicle.Type, Status, Vehicle.Model.Yea
 Now we need to see how accurately the model predicts the outcomes (whether the vehicle will be accessible or not)
 
 
-
 ```{r}
 accessibility.train = vehicles.train$Wheelchair.Accessible
 model.probs = predict(vehicles.glm, vehicles.train, type="response")
@@ -448,10 +449,122 @@ The accuracy of prediction on the test set is the same - 96%. It means that the 
 
 Now we will plot graphs to visualize our data. 
 
+We can make some quick boxplots: 
+Vehicle.Type + Status + Vehicle.Model.Year 
+                   + Public.Vehicle.Number + ZIP.Code + AddressesGroup + CompanyGroup
+                   + RecordsGroup + DatesGroup
 ```{r}
+attach(vehicles)
+par(mfrow=c(3,3))
+boxplot(Vehicle.Model.Year~Wheelchair.Accessible, xlab="Accessibility", ylab="Year of Vehicle")
+boxplot(Public.Vehicle.Number~Wheelchair.Accessible, xlab="Accessibility", ylab="Number of Vehicle")
+boxplot(ZIP.Code~Wheelchair.Accessible, xlab="Accessibility", ylab="ZIP.Code")
+boxplot(AddressesGroup~Wheelchair.Accessible, xlab="Accessibility", ylab="Adress Group of Vehicle")
+boxplot(CompanyGroup~Wheelchair.Accessible, xlab="Accessibility", ylab="Company Group of Vehicle")
+boxplot(RecordsGroup~Wheelchair.Accessible, xlab="Accessibility", ylab="Records Group of Vehicle")
+boxplot(DatesGroup~Wheelchair.Accessible, xlab="Accessibility", ylab="Dates Group of Vehicle")
 
-ggplot(data = vehicles) + 
-  geom_point(mapping = aes(x = Wheelchair.Accessible, y = ModelYear_clean, color = Vehicle.Fuel.Source))
+
 ```
+From these simple boxplots we can see that there's no real relationship between AdressGroup and Accessibility. We can try not to include it into our glm, because also it might be higly correlated with ZIP.Code. Too much data creates overfitting. 
+
+```{r}
+vehicles.glm = glm(Wheelchair.Accessible ~ Vehicle.Type + Status + Vehicle.Model.Year 
+                   + Public.Vehicle.Number + ZIP.Code + CompanyGroup
+                   + RecordsGroup + DatesGroup, data = vehicles.train, family = "binomial")
+
+summary(vehicles.glm)
+
+accessibility.train = vehicles.train$Wheelchair.Accessible
+model.probs = predict(vehicles.glm, vehicles.train, type="response")
+
+summary(model.probs)
+
+model.preds = rep(0, 75960)
+model.preds[model.probs > 0.5] = 1
+
+table(model.preds, accessibility.train)
+mean(model.preds == accessibility.train)
+
+accessibility.test = vehicles.test$Wheelchair.Accessible
+model.probs = predict(vehicles.glm, vehicles.test, type="response")
+
+summary(model.probs)
+
+model.preds = rep(0, 18988)
+model.preds[model.probs > 0.5] = 1
+
+table(model.preds, accessibility.test)
+mean(model.preds == accessibility.test)
+```
+
+Overall, it barely changed. Address didn't play huge role it predicting the accessibility. 
+
+We can create fancy boxplots: 
+```{r}
+binaryboxplot <- function(data, xlab=NULL, ylab=NULL){
+    # A fancier boxplot 
+    # Inputs: A data frame data, 
+    #         xlab to be used as group
+    #         ylab to be used as regressor
+    # Output: A boxplot with data points
+    
+    #data[xlab] makes a list 
+    #so we need to extract just the values as a vector with unlist()  
+    group <- unlist(data[xlab]) 
+    regressor <- unlist(data[ylab])
+
+    options(repr.plot.width=7, repr.plot.height=3)
+    ggplot(data, aes(x=group, y=regressor, group=group)) + 
+      geom_boxplot(outlier.colour="red") +
+      geom_jitter(width=0.1) +
+      coord_flip() +
+      xlab(xlab) + ylab(ylab)
+}
+
+par(mfrow=c(5,3))
+binaryboxplot(vehicles, "Wheelchair.Accessible", "Public.Vehicle.Number")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "ZIP.Code")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "CompanyGroup")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "RecordsGroup")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "DatesGroup")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "AddressesGroup")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "Vehicle.Model.Year")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "Vehicle.Model")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "Vehicle.Type")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "Vehicle.Make")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "Vehicle.Color")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "Status")
+binaryboxplot(vehicles, "Wheelchair.Accessible", "Vehicle.Fuel.Source")
+
+
+```
+Out of these fancy boxplots, we can understand that vehicles with Gasoline are more likely to be accessible. Those with Active/Surrender/Violation Status are more likely to be accessible. There is no relationship between color, manufacturer, model and accessibility. Taxi is more likely to be accessible, though. 
+
+I will also plot the logistic regression curve. 
+```{r}
+vehicles.glm <- glm(Wheelchair.Accessible ~ CompanyGroup, family = binomial)
+summary(vehicles.glm)
+
+b0 <- coef(vehicles.glm)[1]
+b1 <- coef(vehicles.glm)[2]
+plot(CompanyGroup, jitter(Wheelchair.Accessible, amount = 0.05))
+  curve(exp(b0+b1*x)/(1+exp(b0+b1*x)),add=TRUE)
+```
+```{r}
+vehicles.glm <- glm(Wheelchair.Accessible ~ Vehicle.Model.Year, family = binomial)
+summary(vehicles.glm)
+
+b0 <- coef(vehicles.glm)[1]
+b1 <- coef(vehicles.glm)[2]
+plot(Vehicle.Model.Year, jitter(Wheelchair.Accessible, amount = 0.05))
+  curve(exp(b0+b1*x)/(1+exp(b0+b1*x)),add=TRUE)
+```
+
+
+
+
+
+
 
 
