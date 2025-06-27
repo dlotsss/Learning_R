@@ -147,6 +147,130 @@ It turned out that State column has only one value - IL, which will not affect t
 ```{r}
 vehicles = vehicles[, -13]
 ```
+Next, there are a lot of company names, however they are repeated. Same with records, records.versions and dates
+```{r}
+companies <- names(sort(table(vehicles$Company.Name), decreasing=TRUE))
+
+records <- names(sort(table(vehicles$Record.ID), decreasing=TRUE))
+records.versions <- names(sort(table(vehicles$Record.Version.ID), decreasing=TRUE))
+dates <- names(sort(table(vehicles$Last.Valid.Date), decreasing=TRUE))
+
+adresses <- names(sort(table(vehicles$Address), decreasing=TRUE))
+
+```
+There are 10591 unique names of companies. GLM will not be able to divide all of those names into separate predictors, therefore we need a new categorical value about companies. I will divide it into groups like top1000, top2000, top3000....
+
+13445 unique of records
+8131 unique of dates
+4260 unique of addresses
+
+```{r}
+companies <- sort(table(vehicles$Company.Name), decreasing = TRUE)
+company_levels <- names(companies)
+ranks <- seq_along(company_levels)
+rank_lookup <- setNames(ranks, company_levels)
+
+breaks <- c(0, seq(1000, 10000, by = 1000), Inf)
+labels <- c(paste0("Top ", seq(1000, 10000, by = 1000)), "Other")
+
+vehicles$CompanyGroup <- sapply(vehicles$Company.Name, function(x) {
+  r <- rank_lookup[x]
+  if (is.na(r)) return("Other")
+  bucket <- findInterval(r, vec = breaks, rightmost.closed = TRUE)
+  labels[bucket]
+})
+
+vehicles$CompanyGroup <- factor(
+  vehicles$CompanyGroup,
+  levels = labels
+)
+
+table(vehicles$CompanyGroup)
+```
+Now there are only 11 variables which will be easier to process for the model. This means that those most frequent 1000 companies are grouped at Top1000, then Top2000 and etc
+
+Same thing I will do for Record.ID
+```{r}
+records <- sort(table(vehicles$Record.ID), decreasing = TRUE)
+record_levels <- names(records)
+ranks <- seq_along(record_levels)
+rank_lookup <- setNames(ranks, record_levels)
+
+breaks <- c(0, seq(1000, 13000, by = 1000), Inf)
+labels <- c(paste0("Top ", seq(1000, 13000, by = 1000)), "Other")
+
+vehicles$RecordsGroup <- sapply(vehicles$Record.ID, function(x) {
+  r <- rank_lookup[x]
+  if (is.na(r)) return("Other")
+  bucket <- findInterval(r, vec = breaks, rightmost.closed = TRUE)
+  labels[bucket]
+})
+
+vehicles$RecordsGroup <- factor(
+  vehicles$RecordsGroup,
+  levels = labels
+)
+
+table(vehicles$RecordsGroup)
+```
+And the same thing for Last.Valid.Date 
+
+```{r}
+dates <- sort(table(vehicles$Last.Valid.Date), decreasing = TRUE)
+dates_levels <- names(dates)
+ranks <- seq_along(dates_levels)
+rank_lookup <- setNames(ranks, dates_levels)
+
+breaks <- c(0, seq(1000, 8000, by = 1000), Inf)
+labels <- c(paste0("Top ", seq(1000, 8000, by = 1000)), "Other")
+
+vehicles$DatesGroup <- sapply(vehicles$Last.Valid.Date, function(x) {
+  r <- rank_lookup[x]
+  if (is.na(r)) return("Other")
+  bucket <- findInterval(r, vec = breaks, rightmost.closed = TRUE)
+  labels[bucket]
+})
+
+vehicles$DatesGroup <- factor(
+    vehicles$DatesGroup,
+  levels = labels
+)
+
+table(vehicles$DatesGroup)
+```
+And same for Addresses
+
+```{r}
+addresses <- sort(table(vehicles$Address), decreasing = TRUE)
+addresses_levels <- names(addresses)
+ranks <- seq_along(addresses_levels)
+rank_lookup <- setNames(ranks, addresses_levels)
+
+breaks <- c(0, seq(1000, 4000, by = 1000), Inf)
+labels <- c(paste0("Top ", seq(1000, 4000, by = 1000)), "Other")
+
+vehicles$AddressesGroup <- sapply(vehicles$Address, function(x) {
+  r <- rank_lookup[x]
+  if (is.na(r)) return("Other")
+  bucket <- findInterval(r, vec = breaks, rightmost.closed = TRUE)
+  labels[bucket]
+})
+
+vehicles$AddressesGroup <- factor(
+    vehicles$AddressesGroup,
+  levels = labels
+)
+
+table(vehicles$AddressesGroup)
+```
+
+After we have Group columns we don't really need those original columns, so we can drop those. At the same time Records.Versions variable is unique for each row, so it will not give us valuable information in classification. Probably, it is connected to the Records.ID column. We can drop it, too. 
+```{r}
+vehicles = vehicles[, -(10:11)]
+vehicles = vehicles[, -(12:14)]
+```
+
+
 Let's dive into real analysis after cleaning the data. 
 
 I decided to take just 80 percent of all the rows as train test and at the same time 20% of rows will be in test. I wanted to save the percantage of wheelchair accessible vehicles over all vehicles. 
@@ -155,6 +279,7 @@ As Wheelchair.Accessible is a categorical value, linear regression is not the to
 
 I tried to iterate the code on different predictors, because it was to much for the model to proccess if do it everything all at once
 ```{r}
+set.seed(1)
 lines <- createDataPartition(vehicles$Wheelchair.Accessible, p = 0.8,
                                   list = FALSE,                            
                                   times = 1)
@@ -231,52 +356,35 @@ Vehicle.Fuel.Source is also considered not important for the vehicle.
 For the following columns, training data set was too large, therefore, I decided to make a very little data subset just to check whether those predictors are significant or not. 
 
 ```{r}
-lines <- createDataPartition(vehicles$Wheelchair.Accessible, p = 0.01,
-                                  list = FALSE,                            
-                                  times = 1)
-vehicles.check = vehicles[lines, ]
-vehicles.glm = glm(Wheelchair.Accessible ~ Company.Name, data = vehicles.check, 
+vehicles.glm = glm(Wheelchair.Accessible ~ CompanyGroup, data = vehicles.train, 
                   family = binomial)
 summary(vehicles.glm)
 ```
-Company.Name is not a significant predictor
+CompanyGroup is a significant predictor
+
+
 
 ```{r}
-# find top 10
-top10 <- names(sort(table(vehicles.train$Company.Name), decreasing=TRUE))[1:10]
 
-# create a new factor with only 11 levels (10 + “Other”)
-vehicles.train$Company2 <- factor(
-  ifelse(vehicles.train$Company.Name %in% top10,
-         vehicles.train$Company.Name,
-         "Other"),
-  levels = c(top10, "Other")
-)
-
-summary(glm(Wheelchair.Accessible ~ Company2, data = vehicles.train, 
-                  family = binomial))
-```
-
-```{r}
-vehicles.glm = glm(Wheelchair.Accessible ~ Address, data = vehicles.check, 
+vehicles.glm = glm(Wheelchair.Accessible ~ AddressesGroup, data = vehicles.train, 
                    family = binomial)
 summary(vehicles.glm)
 ```
-Address is also not a significant predictor
+AddressesGroup is also a significant predictor
 
 ```{r}
 vehicles.glm = glm(Wheelchair.Accessible ~ City, data = vehicles.train, 
                    family = binomial)
 summary(vehicles.glm)
 ```
-
+City is not statistically significant
 
 ```{r}
-vehicles.glm = glm(Wheelchair.Accessible ~ Record.ID, data = vehicles.check, 
+vehicles.glm = glm(Wheelchair.Accessible ~ RecordsGroup, data = vehicles.train, 
                    family = binomial)
 summary(vehicles.glm)
 ```
-
+RecordsGroup also appears as statistically significant
 
 ```{r}
 vehicles.glm = glm(Wheelchair.Accessible ~ ZIP.Code, data = vehicles.train, 
@@ -286,73 +394,59 @@ summary(vehicles.glm)
 ZIP code appears to be statistically significant. 
 
 ```{r}
-vehicles.glm = glm(Wheelchair.Accessible ~ Last.Valid.Date, data = vehicles.check, 
+vehicles.glm = glm(Wheelchair.Accessible ~ DatesGroup, data = vehicles.train, 
                    family = binomial)
 summary(vehicles.glm)
 ```
-
-
-```{r}
-vehicles.glm = glm(Wheelchair.Accessible ~ Record.Version.ID, data = vehicles.check, 
-                   family = binomial)
-summary(vehicles.glm)
-```
-
-
-
-
+DatesGroup also is statistically significant
 
 
 
 Now, as we undesrtood statistically significant predictors, we can make a real model. 
 ```{r}
 vehicles.glm = glm(Wheelchair.Accessible ~ Vehicle.Type + Status + Vehicle.Model.Year 
-                   + Public.Vehicle.Number + ZIP.Code, data = vehicles.train, family = "binomial")
+                   + Public.Vehicle.Number + ZIP.Code + AddressesGroup + CompanyGroup
+                   + RecordsGroup + DatesGroup, data = vehicles.train, family = "binomial")
 
 summary(vehicles.glm)
 ```
-From this summary we can understand that Vehicle.Type, Status, Vehicle.Model.Year, Public.Vehicle.Numer and ZIP.Code are indeed statistically significant predictors. 
+From this summary we can understand that Vehicle.Type, Status, Vehicle.Model.Year, Public.Vehicle.Numer, ZIP.Code and Groups variables are indeed statistically significant predictors. 
 
 Now we need to see how accurately the model predicts the outcomes (whether the vehicle will be accessible or not)
 
-We can understand from the summary above that Company Name or Model is not really give a statistically significant predictor. Therefore, we can now try glm without it. 
-
-```{r}
-vehicles$AccessibleNumber <- ifelse(vehicles$Wheelchair.Accessible == "Y", 1, 0)
-
-summary(glm(AccessibleNumber ~ Status + Vehicle.Fuel.Source + ModelYear_clean + LastValidDate, 
-               data   = vehicles,
-               family = binomial))
-```
-In the new glm model I used all the rows from the original Vehicle.csv. Now we see that StatusFORECLOSURE, StatusHOLD and ModelYear_clean are significant predictors because their z value and Pr(>|z|) are small enough. From this we can construct our prediction. 
 
 
 ```{r}
-train <- subset(vehicles, LastValidDate <= as.POSIXct("2022-12-31 23:59:59", tz="UTC"))
-test  <- subset(vehicles, LastValidDate >= as.POSIXct("2023-01-01 00:00:00", tz="UTC"))
-
-accessibility <- vehicles$Wheelchair.Accessible[
-  vehicles$LastValidDate >= as.POSIXct("2023-01-01 00:00:00", tz="UTC")
-]
-
-```
-
-I created the train set and the test sets of the vehicles data set and also created the accessibility so then we could compare the accuracy. 
-
-```{r}
-model = glm(AccessibleNumber ~ Status + ModelYear_clean, data = vehicles, family=binomial)
-model.probs = predict(model, test, type="response")
+accessibility.train = vehicles.train$Wheelchair.Accessible
+model.probs = predict(vehicles.glm, vehicles.train, type="response")
 
 summary(model.probs)
 
-model.preds = rep("N", 2791)
-model.preds[model.probs > 0.5] = "Y"
+model.preds = rep(0, 75960)
+model.preds[model.probs > 0.5] = 1
 
-table(model.preds, accessibility)
-mean(model.preds == accessibility)
+table(model.preds, accessibility.train)
+mean(model.preds == accessibility.train)
 
 ```
-we can see that our model only predicts that every vehicle of this type won't be accessible. However, it's accuracy is 99%. If we change the model.probs > 0.5 condition so it would be like "when it is bigger than the mean", it's accuracy will fell down to only 69% 
+We can see that the model predicts the accessibility of places with a 96% accuracy on a training set. Let's see how's that going in a test set. 
+
+```{r}
+accessibility.test = vehicles.test$Wheelchair.Accessible
+model.probs = predict(vehicles.glm, vehicles.test, type="response")
+
+summary(model.probs)
+
+model.preds = rep(0, 18988)
+model.preds[model.probs > 0.5] = 1
+
+table(model.preds, accessibility.test)
+mean(model.preds == accessibility.test)
+```
+The accuracy of prediction on the test set is the same - 96%. It means that the model does really well to identify which vehicles will be accessible and which not.
+
+
+Now we will plot graphs to visualize our data. 
 
 ```{r}
 
