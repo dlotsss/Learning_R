@@ -1,0 +1,141 @@
+---
+title: "DA8"
+output: html_document
+date: "2025-06-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+9.6.1 Support Vector Classifier
+```{r}
+set.seed(1)
+x=matrix(rnorm (20*2), ncol=2)
+y=c(rep(-1,10), rep(1,10))
+x[y==1,]=x[y==1,] + 1
+plot(x, col=(3-y))
+```
+We generated the observations to check whether they are linearly separable. They are not. 
+
+```{r}
+dat=data.frame(x=x, y=as.factor(y))
+library(e1071)
+svmfit=svm(y~., data=dat , kernel ="linear", cost=10, scale=FALSE)
+```
+The svm won't scale each feature to have mean zero or standard deviation one because scale = FALSE
+
+```{r}
+plot(svmfit , dat)
+```
+```{r}
+svmfit$index
+summary(svmfit)
+```
+This tells us, for instance, that a linear kernel was used with cost=10, and that there were seven support vectors, four in one class and three in the other.
+
+What if we use a smaller value of cost parameter? 
+
+```{r}
+svmfit=svm(y~., data=dat , kernel ="linear", cost =0.1,
+  scale=FALSE)
+plot(svmfit , dat)
+```
+```{r}
+svmfit$index
+
+```
+
+we have a larger number of support vectors, because the margin is now wider
+
+```{r}
+set.seed(1)
+tune.out=tune(svm ,y~.,data=dat ,kernel ="linear",
+  ranges=list(cost=c (0.001, 0.01, 0.1, 1,5,10,100) ))
+summary(tune.out)
+```
+0.05 error is for 0.1 cost, so it is the best one. Tune() stores the best function and we can assess: 
+
+```{r}
+best.mod = tune.out$best.model
+summary(best.mod)
+```
+```{r}
+xtest=matrix(rnorm (20*2) , ncol=2)
+ytest=sample (c(-1,1), 20, rep=TRUE)
+xtest[ytest==1,]= xtest[ytest==1,] + 1
+testdat=data.frame(x= xtest , y=as.factor(ytest))
+```
+now we made the test set 
+
+```{r}
+ypred=predict(best.mod ,testdat)
+table(predict = ypred , truth=testdat$y)
+mean(ypred == testdat$y)
+```
+We see that the model predicted with 85% accuracy 
+
+Now let's imagine that the observations are barely linearly separable. We fit the support vector classifier and plot the resulting hyperplane, using a very large value of cost so that no observations are misclassified.
+
+```{r}
+dat=data.frame(x=x,y=as.factor(y))
+svmfit=svm(y~., data=dat , kernel ="linear", cost=1e5)
+summary(svmfit)
+```
+```{r}
+x[y==1,]=x[y==1,]+0.5
+plot(x, col=(y+5)/2, pch =19)
+
+```
+
+No training errors were made and only three support vectors were used, however we can see that the margin is very narrow which might lead to the errors with test data. 
+
+```{r}
+dat=data.frame(x=x,y=as.factor(y))
+svmfit=svm(y~., data=dat , kernel ="linear", cost=1e5)
+summary(svmfit)
+```
+
+
+```{r}
+xtest=matrix(rnorm (20*2) , ncol=2)
+ytest=sample (c(-1,1), 20, rep=TRUE)
+xtest[ytest==1,]= xtest[ytest==1,] + 1
+testdat=data.frame(x= xtest , y=as.factor(ytest))
+ypred=predict(svmfit ,testdat)
+table(predict = ypred , truth=testdat$y)
+mean(ypred == testdat$y)
+```
+it is only 65% accuracy 
+
+
+```{r}
+svmfit=svm(y~., data=dat , kernel ="linear", cost=1)
+summary(svmfit)
+```
+
+```{r}
+plot(svmfit ,dat)
+```
+
+Using cost=1, we misclassify a training observation, but we also obtain a much wider margin and use seven support vectors. This will eventually perform better on test data. 
+
+
+```{r}
+xtest=matrix(rnorm (20*2) , ncol=2)
+ytest=sample (c(-1,1), 20, rep=TRUE)
+xtest[ytest==1,]= xtest[ytest==1,] + 1
+testdat=data.frame(x= xtest , y=as.factor(ytest))
+ypred=predict(svmfit ,testdat)
+table(predict = ypred , truth=testdat$y)
+mean(ypred == testdat$y)
+```
+This has a 80% accuracy. 
+
+
+
+9.6.2 Support Vector Machine
+```{r}
+
+```
+
