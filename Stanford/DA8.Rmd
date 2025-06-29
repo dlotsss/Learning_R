@@ -136,6 +136,53 @@ This has a 80% accuracy.
 
 9.6.2 Support Vector Machine
 ```{r}
-
+set.seed(1)
+x=matrix(rnorm (200*2) , ncol=2)
+x[1:100,]=x[1:100,]+2
+x[101:150 ,]=x[101:150,]-2
+y=c(rep(1,150) ,rep(2,50))
+dat=data.frame(x=x,y=as.factor(y))
 ```
+
+we created the non-linear class boundary 
+
+```{r}
+plot(x, col=y)
+```
+This the plot of data
+
+```{r}
+train=sample (200,100)
+svmfit=svm(y~., data=dat[train ,], kernel ="radial", gamma=1,
+  cost=1)
+plot(svmfit , dat[train ,])
+```
+We randomly divided the data into 2 parts and plotted it. There are some mistakes in training set. 
+
+```{r}
+summary(svmfit)
+```
+Maybe we can decrease the errors by increasing the cost, however it might be overfitting. 
+```{r}
+svmfit=svm(y~., data=dat[train ,], kernel ="radial", gamma=1,
+  cost=1e5)
+plot(svmfit ,dat[train ,])
+```
+Let's now check the performance 
+
+```{r}
+set.seed(1)
+tune.out=tune(svm , y~., data=dat[train ,], kernel ="radial",
+  ranges=list(cost=c(0.1,1,10,100,1000),
+  gamma=c(0.5,1,2,3,4) ))
+summary (tune.out)
+```
+The best is when cost is 1 and gamma is 1
+
+```{r}
+table(true=dat[-train ,"y"], pred=predict(tune.out$best.model,
+  newdata =dat[-train ,]))
+mean(predict(tune.out$best.model, newdata =dat[-train ,]) == dat[-train ,"y"])
+```
+there is 88% accuracy 
 
