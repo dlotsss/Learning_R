@@ -1,7 +1,8 @@
 ---
-title: "ShortProject"
-output: pdf_document
-date: "2025-06-23"
+title: "FinalProject"
+output:
+  pdf_document: default
+date: "2025-06-27"
 ---
 
 ```{r setup, include=FALSE}
